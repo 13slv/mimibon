@@ -21,48 +21,59 @@ function linearRegression(y) {
   return { slope, intercept, stdErr };
 }
 
-// ---------- 1. Linear trend ----------
-export function LinearTrend({ daily }) {
-  const [horizon, setHorizon] = useState(14);
-  const { slope, intercept, stdErr } = useMemo(() => linearRegression(daily.values), [daily]);
+// ---------- 1. Linear trend (weekly basis) ----------
+export function LinearTrend({ weekly }) {
+  const [horizon, setHorizon] = useState(8);
+  const [metric, setMetric] = useState("kg"); // "kg" or "units"
+  const series = metric === "kg" ? weekly.kg : weekly.units;
+  const yLabel = metric === "kg" ? "кг" : "од.";
+
+  const { slope, intercept, stdErr } = useMemo(() => linearRegression(series), [series]);
 
   const data = useMemo(() => {
-    const n = daily.values.length;
-    const labels = [...daily.labels];
-    const history = [...daily.values];
+    const n = series.length;
+    const labels = [...weekly.labels];
+    const history = [...series];
     const forecast = [...Array(n).fill(null)];
     const ciLow = [...Array(n).fill(null)];
     const ciHigh = [...Array(n).fill(null)];
 
-    // last historical point also "starts" forecast
-    forecast[n - 1] = daily.values[n - 1];
-    ciLow[n - 1] = daily.values[n - 1];
-    ciHigh[n - 1] = daily.values[n - 1];
+    forecast[n - 1] = series[n - 1];
+    ciLow[n - 1] = series[n - 1];
+    ciHigh[n - 1] = series[n - 1];
 
     for (let i = 1; i <= horizon; i++) {
       const xi = n - 1 + i;
       const pred = intercept + slope * xi;
-      labels.push(`D+${i}`);
+      labels.push(`W+${i}`);
       history.push(null);
       forecast.push(Math.max(0, pred));
       ciLow.push(Math.max(0, pred - 1.96 * stdErr));
       ciHigh.push(Math.max(0, pred + 1.96 * stdErr));
     }
     return { labels, history, forecast, ciLow, ciHigh, startIdx: n - 1 };
-  }, [daily, horizon, slope, intercept, stdErr]);
+  }, [series, horizon, slope, intercept, stdErr, weekly.labels]);
 
   const trendDir = slope > 0 ? "↗ зростання" : slope < 0 ? "↘ спад" : "→ стабільно";
 
   return (
     <div>
-      <div className="grid md:grid-cols-3 gap-4 mb-5 text-sm">
-        <Stat label="Нахил тренду" value={`${fmt(slope)} од./день`} sub={trendDir} />
-        <Stat label="Похибка моделі (σ)" value={`±${fmt(stdErr)} од.`} sub="95% інтервал ≈ ±1.96σ" />
+      <div className="grid md:grid-cols-4 gap-4 mb-5 text-sm">
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <label className="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-2 block">Метрика</label>
+          <select value={metric} onChange={e => setMetric(e.target.value)}
+                  className="w-full bg-white border border-gray-300 rounded px-2 py-1.5 text-sm">
+            <option value="kg">Сировина (кг)</option>
+            <option value="units">Обсяг (од.)</option>
+          </select>
+        </div>
+        <Stat label="Нахил тренду" value={`${fmt(slope)} ${yLabel}/тиждень`} sub={trendDir} />
+        <Stat label="Похибка моделі (σ)" value={`±${fmt(stdErr)} ${yLabel}`} sub="95% інтервал ≈ ±1.96σ" />
         <div className="bg-gray-50 p-4 rounded-lg">
           <label className="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-2 block">
-            Горизонт прогнозу: {horizon} днів
+            Горизонт: {horizon} тижнів
           </label>
-          <input type="range" min={3} max={30} value={horizon}
+          <input type="range" min={2} max={26} value={horizon}
                  onChange={e => setHorizon(parseInt(e.target.value))}
                  className="w-full accent-brand-600" />
         </div>
@@ -74,9 +85,10 @@ export function LinearTrend({ daily }) {
         ciHigh={data.ciHigh}
         labels={data.labels}
         forecastStartIdx={data.startIdx}
+        yLabel={yLabel}
       />
       <p className="text-xs text-gray-500 mt-3">
-        ⚠️ Модель навчена на 14 днях. На малій вибірці лінійний тренд дуже чутливий до викидів (наприклад, 9 травня).
+        ⚠️ Модель навчена на {series.length} тижнях. На малій вибірці лінійний тренд чутливий до викидів.
         Для серйозного прогнозу — Prophet або ARIMA, але треба ≥3 місяці історії.
       </p>
     </div>
@@ -92,8 +104,6 @@ export function WhatIfCalculator() {
   const [weeks, setWeeks] = useState(12);
 
   const data = useMemo(() => {
-    // simple simulation: each week add newPerWeek customers, each gives avgKgW0 in their week,
-    // then with retentionPct returns next week giving avgKgRepeat, and so on with same retention.
     const cohorts = [];
     const weeklyKg = [];
     const cumulKg = [];
@@ -136,10 +146,10 @@ export function WhatIfCalculator() {
         <Stat label="Активних клієнтів на кінець" value={fmt(newPerWeek * weeks * (retentionPct / 100))} sub="оцінка" />
       </div>
 
-      <SimpleBarsChart data={data.weeklyKg} labels={data.weeklyKg.map((_, i) => `W${i + 1}`)} />
+      <SimpleBarsChart data={data.weeklyKg} labels={data.weeklyKg.map((_, i) => `W${i + 1}`)} unit="кг" />
 
       <p className="text-xs text-gray-500 mt-3">
-        Модель: щотижня додається N нових клієнтів. Кожен клієнт у тиждень входу дає K₀ кг,
+        Модель: щотижня додається N нових клієнтів. Кожен у тиждень входу дає K₀ кг,
         у наступні тижні з імовірністю R повертається й дає K кг.
       </p>
     </div>
@@ -148,13 +158,10 @@ export function WhatIfCalculator() {
 
 // ---------- 3. Cohort LTV projection ----------
 export function CohortLTV({ cohortChart }) {
-  // Use observed W19 cohort as baseline retention curve.
   const w19 = cohortChart.datasets[0];
   const totalCohortSize = parseInt(w19.label.match(/(\d+)\s*клієнтів/)?.[1] || "25");
 
-  // observed avg kg per customer per period
-  const observed = w19.data.map(v => v / totalCohortSize); // total kg / cohort size
-  // extend by averaging last 2 periods
+  const observed = w19.data.map(v => v / totalCohortSize);
   const tail = observed.slice(-2).reduce((a, v) => a + v, 0) / 2;
 
   const [horizon, setHorizon] = useState(12);
@@ -187,12 +194,12 @@ export function CohortLTV({ cohortChart }) {
       <div className="grid md:grid-cols-3 gap-4 mb-6">
         <Slider label="Розмір нової когорти" value={cohortSize} min={3} max={40} onChange={setCohortSize} suffix=" клієнтів" />
         <Slider label="Горизонт прогнозу" value={horizon} min={4} max={26} onChange={setHorizon} suffix=" тижнів" />
-        <Stat label={`Кумулятивний LTV когорти за ${horizon} тиж.`} value={fmt(totalKg)} sub="кг" />
+        <Stat label={`Кумулятивний LTV за ${horizon} тиж.`} value={fmt(totalKg)} sub="кг" />
       </div>
 
       <div className="mb-4">
         <h4 className="text-sm font-semibold text-gray-700 mb-2">Прогноз кг на тиждень (вся когорта)</h4>
-        <SimpleBarsChart data={data.cohortPer} labels={data.cohortPer.map((_, i) => `W+${i}`)} />
+        <SimpleBarsChart data={data.cohortPer} labels={data.cohortPer.map((_, i) => `W+${i}`)} unit="кг" />
       </div>
 
       <p className="text-xs text-gray-500 mt-3">
@@ -227,12 +234,12 @@ function Slider({ label, value, min, max, onChange, suffix = "" }) {
   );
 }
 
-function SimpleBarsChart({ data, labels }) {
+function SimpleBarsChart({ data, labels, unit = "" }) {
   const max = Math.max(...data, 1);
   return (
     <div className="flex items-end gap-1 h-48 bg-gray-50 p-3 rounded-lg">
       {data.map((v, i) => (
-        <div key={i} className="flex-1 flex flex-col items-center justify-end" title={`${labels[i]}: ${fmt(v)}`}>
+        <div key={i} className="flex-1 flex flex-col items-center justify-end" title={`${labels[i]}: ${fmt(v)} ${unit}`}>
           <div className="text-[10px] text-gray-500 mb-1">{fmt(v)}</div>
           <div className="w-full bg-brand-500 rounded-t" style={{ height: `${(v / max) * 80}%`, minHeight: 2 }} />
           <div className="text-[10px] text-gray-400 mt-1">{labels[i]}</div>

@@ -2,7 +2,7 @@ import data from "@/data/sales.json";
 import KPICard from "@/components/KPICard";
 import Card from "@/components/Card";
 import {
-  ProductPie, WeekdayBar, DailyBar, HorizontalBar
+  ProductPie, WeekdayBar, WeeklyCombo, HorizontalBar
 } from "@/components/Charts";
 
 const fmt = n => n.toLocaleString("uk-UA", { maximumFractionDigits: 1 });
@@ -23,38 +23,43 @@ export default function Home() {
         <KPICard label="Активних днів" value={k.days} sub="за 20 календарних" />
       </div>
 
-      {/* Charts */}
+      {/* Weekly main chart */}
+      <Card
+        title="Тижнева динаміка"
+        sub="Стовпці — обсяг (од.) і сировина (кг). Лінії — кількість клієнтів."
+        insight={<>
+          <b>W19 — пік 20 260 од. (передсвяткова закладка).</b> Далі плавне зниження.
+          Притік нових клієнтів падає: 25 → 14 → 8 → 0. Це найважливіший тривожний сигнал — без нових клієнтів навіть стабільний retention не врятує.
+        </>}
+      >
+        <WeeklyCombo {...data.weekly} />
+      </Card>
+
+      {/* Product & weekday */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card
           title="Продуктовий мікс"
-          sub="Розподіл обсягу за SKU. Ріжок — топ-1."
-          insight={<><b>Ріжок вафельний = 48% обсягу.</b> Стакани разом — 42%. Смесь у штуках мала, але це 4 620 кг реальної сировини.</>}
+          sub="Розподіл обсягу за SKU."
+          insight={<><b>Ріжок = 48% обсягу.</b> Стакани разом — 42%. Смесь у штуках мала, але це 4 620 кг реальної сировини.</>}
         >
           <ProductPie {...data.products} />
         </Card>
 
         <Card
           title="День тижня"
-          sub="Сумарний обсяг продажів по днях тижня."
-          insight={<><b>Субота = 44% обсягу.</b> Неділя й понеділок взагалі відсутні — або графік доставки, або упущена виручка.</>}
+          sub="Сумарний обсяг за день тижня."
+          insight={<><b>Субота = 44% обсягу.</b> Неділя й понеділок відсутні — або графік доставки, або упущена виручка.</>}
         >
           <WeekdayBar {...data.weekday} />
         </Card>
       </div>
 
-      <Card
-        title="Динаміка по днях"
-        sub="Жовтим — суботи."
-        insight={<><b>9 травня — пік 11 545 од., 27% всього періоду в один день.</b> Швидше за все, передсвяткова закладка. Без нього середньодобовий оборот падає з 3 071 до 2 419 од.</>}
-      >
-        <DailyBar {...data.daily} />
-      </Card>
-
+      {/* Customers & geography */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card
           title="Топ-15 клієнтів"
           sub="З 47 клієнтів. Топ-5 = 27% обсягу, топ-10 = 42%."
-          insight={<><b>Майданович Р. О. = 11,6%</b> обсягу. Втрата одного клієнта = мінус 1/8 продажів. Диверсифікація потрібна.</>}
+          insight={<><b>Майданович Р. О. = 11,6%</b> обсягу. Втрата одного клієнта = мінус 1/8 продажів.</>}
         >
           <div className="md:col-span-2"><HorizontalBar {...data.topCustomers} color="#1F4E78" height={500} /></div>
         </Card>
