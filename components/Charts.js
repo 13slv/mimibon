@@ -10,22 +10,22 @@ const PALETTE = ["#1F4E78", "#2E75B6", "#5B9BD5", "#9BC2E6", "#BDD7EE", "#DEEBF7
 
 const fmt = n => (typeof n === "number" ? n.toLocaleString("uk-UA", { maximumFractionDigits: 1 }) : n);
 
-// ---------- Pie ----------
+// ---------- Pie (now used for flavor split) ----------
 export function ProductPie({ labels, values }) {
   const data = labels.map((l, i) => ({ name: l, value: values[i] }));
   return (
     <ResponsiveContainer width="100%" height={300}>
       <PieChart>
-        <Pie data={data} dataKey="value" nameKey="name" outerRadius={100} innerRadius={50} label={d => d.name.split(" ")[0]}>
+        <Pie data={data} dataKey="value" nameKey="name" outerRadius={100} innerRadius={50} label={d => `${d.name}: ${fmt(d.value)} кг`}>
           {data.map((_, i) => <Cell key={i} fill={PALETTE[i % PALETTE.length]} />)}
         </Pie>
-        <Tooltip formatter={v => fmt(v) + " од."} />
+        <Tooltip formatter={v => fmt(v) + " кг"} />
       </PieChart>
     </ResponsiveContainer>
   );
 }
 
-// ---------- Weekday Bar ----------
+// ---------- Weekday Bar (kg) ----------
 export function WeekdayBar({ labels, values }) {
   const data = labels.map((l, i) => ({
     day: l, value: values[i],
@@ -37,7 +37,7 @@ export function WeekdayBar({ labels, values }) {
         <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
         <XAxis dataKey="day" />
         <YAxis tickFormatter={fmt} />
-        <Tooltip formatter={v => fmt(v) + " од."} />
+        <Tooltip formatter={v => fmt(v) + " кг"} />
         <Bar dataKey="value">
           {data.map((d, i) => <Cell key={i} fill={d.fill} />)}
         </Bar>
@@ -46,11 +46,10 @@ export function WeekdayBar({ labels, values }) {
   );
 }
 
-// ---------- Weekly Combo (units + kg bars + new customers line) ----------
-export function WeeklyCombo({ labels, units, kg, customers, newCustomers }) {
+// ---------- Weekly Combo (kg bars + active/new customer lines) ----------
+export function WeeklyCombo({ labels, kg, customers, newCustomers }) {
   const data = labels.map((l, i) => ({
     week: l,
-    units: units[i],
     kg: kg[i],
     customers: customers[i],
     newCustomers: newCustomers[i]
@@ -60,11 +59,10 @@ export function WeeklyCombo({ labels, units, kg, customers, newCustomers }) {
       <ComposedChart data={data}>
         <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
         <XAxis dataKey="week" />
-        <YAxis yAxisId="left" tickFormatter={fmt} label={{ value: "од. / кг", angle: -90, position: "insideLeft", style: { fontSize: 11, fill: "#6b7280" } }} />
+        <YAxis yAxisId="left" tickFormatter={fmt} label={{ value: "кг сировини", angle: -90, position: "insideLeft", style: { fontSize: 11, fill: "#6b7280" } }} />
         <YAxis yAxisId="right" orientation="right" tickFormatter={fmt} label={{ value: "клієнтів", angle: 90, position: "insideRight", style: { fontSize: 11, fill: "#6b7280" } }} />
-        <Tooltip formatter={(v, name) => [fmt(v), name]} />
+        <Tooltip formatter={(v, name) => [name === "Сировина (кг)" ? fmt(v) + " кг" : v, name]} />
         <Legend wrapperStyle={{ fontSize: 12 }} />
-        <Bar yAxisId="left" dataKey="units" name="Обсяг (од.)" fill="#5B9BD5" />
         <Bar yAxisId="left" dataKey="kg" name="Сировина (кг)" fill="#1F4E78" />
         <Line yAxisId="right" type="monotone" dataKey="customers" name="Активних клієнтів" stroke="#F59E0B" strokeWidth={2.5} dot={{ r: 4 }} />
         <Line yAxisId="right" type="monotone" dataKey="newCustomers" name="Нових клієнтів" stroke="#10B981" strokeWidth={2.5} strokeDasharray="5 5" dot={{ r: 4 }} />
@@ -73,8 +71,8 @@ export function WeeklyCombo({ labels, units, kg, customers, newCustomers }) {
   );
 }
 
-// ---------- Horizontal Bar ----------
-export function HorizontalBar({ labels, values, color = "#1F4E78", height = 400, unit = "од." }) {
+// ---------- Horizontal Bar (kg) ----------
+export function HorizontalBar({ labels, values, color = "#1F4E78", height = 400, unit = "кг" }) {
   const data = labels.map((l, i) => ({ name: l, value: values[i] }));
   return (
     <ResponsiveContainer width="100%" height={height}>
@@ -112,7 +110,7 @@ export function CohortBars({ chartData }) {
   );
 }
 
-// ---------- Multi-Line Chart (for retention, avg kg, etc.) ----------
+// ---------- Multi-Line Chart ----------
 export function MultiLine({ chartData, yLabel, yFormatter = fmt, domain }) {
   const flatData = chartData.labels.map((label, i) => {
     const row = { period: label };
@@ -137,9 +135,8 @@ export function MultiLine({ chartData, yLabel, yFormatter = fmt, domain }) {
   );
 }
 
-// ---------- Retention Dual: retention% line + kg/customer bars ----------
+// ---------- Retention Dual ----------
 export function RetentionDual({ retentionData, avgKgData }) {
-  // merge by period (assumes same labels)
   const data = retentionData.labels.map((label, i) => {
     const row = { period: label };
     retentionData.datasets.forEach(ds => { row[`ret_${ds.label}`] = ds.data[i] ?? null; });
@@ -171,7 +168,7 @@ export function RetentionDual({ retentionData, avgKgData }) {
   );
 }
 
-// ---------- Cohort heatmap (HTML/CSS, not Recharts) ----------
+// ---------- Cohort heatmap ----------
 export function CohortHeatmap({ matrix, metric = "kg" }) {
   const values = matrix[metric === "kg" ? "kg" : metric === "active" ? "active" : "avgKgPerActive"];
   const flat = values.flat().filter(v => v !== null && v !== undefined && v !== 0);
@@ -263,8 +260,24 @@ export function CohortStatsTable({ rows }) {
   );
 }
 
+// ---------- Simple reactive bar chart (replaces SimpleBarsChart) ----------
+export function ReactiveBars({ data, labels, unit = "кг", color = "#1F4E78", height = 240 }) {
+  const chartData = labels.map((l, i) => ({ name: l, value: data[i] }));
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <BarChart data={chartData}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+        <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+        <YAxis tickFormatter={fmt} />
+        <Tooltip formatter={v => fmt(v) + " " + unit} />
+        <Bar dataKey="value" fill={color} />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
 // ---------- Forecast Line with Confidence Band ----------
-export function ForecastChart({ history, forecast, ciLow, ciHigh, labels, forecastStartIdx, yLabel = "од." }) {
+export function ForecastChart({ history, forecast, ciLow, ciHigh, labels, forecastStartIdx, yLabel = "кг" }) {
   const data = labels.map((label, i) => ({
     period: label,
     history: i <= forecastStartIdx ? history[i] : null,

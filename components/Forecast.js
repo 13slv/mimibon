@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import { ForecastChart } from "@/components/Charts";
+import { ForecastChart, ReactiveBars } from "@/components/Charts";
 
 const fmt = n => n.toLocaleString("uk-UA", { maximumFractionDigits: 1 });
 
@@ -21,12 +21,10 @@ function linearRegression(y) {
   return { slope, intercept, stdErr };
 }
 
-// ---------- 1. Linear trend (weekly basis) ----------
+// ---------- 1. Linear trend (kg, weekly) ----------
 export function LinearTrend({ weekly }) {
   const [horizon, setHorizon] = useState(8);
-  const [metric, setMetric] = useState("kg"); // "kg" or "units"
-  const series = metric === "kg" ? weekly.kg : weekly.units;
-  const yLabel = metric === "kg" ? "кг" : "од.";
+  const series = weekly.kg;
 
   const { slope, intercept, stdErr } = useMemo(() => linearRegression(series), [series]);
 
@@ -58,17 +56,9 @@ export function LinearTrend({ weekly }) {
 
   return (
     <div>
-      <div className="grid md:grid-cols-4 gap-4 mb-5 text-sm">
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <label className="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-2 block">Метрика</label>
-          <select value={metric} onChange={e => setMetric(e.target.value)}
-                  className="w-full bg-white border border-gray-300 rounded px-2 py-1.5 text-sm">
-            <option value="kg">Сировина (кг)</option>
-            <option value="units">Обсяг (од.)</option>
-          </select>
-        </div>
-        <Stat label="Нахил тренду" value={`${fmt(slope)} ${yLabel}/тиждень`} sub={trendDir} />
-        <Stat label="Похибка моделі (σ)" value={`±${fmt(stdErr)} ${yLabel}`} sub="95% інтервал ≈ ±1.96σ" />
+      <div className="grid md:grid-cols-3 gap-4 mb-5 text-sm">
+        <Stat label="Нахил тренду" value={`${fmt(slope)} кг/тиждень`} sub={trendDir} />
+        <Stat label="Похибка моделі (σ)" value={`±${fmt(stdErr)} кг`} sub="95% інтервал ≈ ±1.96σ" />
         <div className="bg-gray-50 p-4 rounded-lg">
           <label className="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-2 block">
             Горизонт: {horizon} тижнів
@@ -85,7 +75,7 @@ export function LinearTrend({ weekly }) {
         ciHigh={data.ciHigh}
         labels={data.labels}
         forecastStartIdx={data.startIdx}
-        yLabel={yLabel}
+        yLabel="кг"
       />
       <p className="text-xs text-gray-500 mt-3">
         ⚠️ Модель навчена на {series.length} тижнях. На малій вибірці лінійний тренд чутливий до викидів.
@@ -122,7 +112,7 @@ export function WhatIfCalculator() {
         }
       });
       cumulative += weekTotal;
-      weeklyKg.push(weekTotal);
+      weeklyKg.push(Math.round(weekTotal * 10) / 10);
       cumulKg.push(cumulative);
     }
     return { weeklyKg, cumulKg };
@@ -146,7 +136,14 @@ export function WhatIfCalculator() {
         <Stat label="Активних клієнтів на кінець" value={fmt(newPerWeek * weeks * (retentionPct / 100))} sub="оцінка" />
       </div>
 
-      <SimpleBarsChart data={data.weeklyKg} labels={data.weeklyKg.map((_, i) => `W${i + 1}`)} unit="кг" />
+      <div className="mb-4">
+        <h4 className="text-sm font-semibold text-gray-700 mb-2">Прогноз кг на тиждень</h4>
+        <ReactiveBars
+          data={data.weeklyKg}
+          labels={data.weeklyKg.map((_, i) => `W${i + 1}`)}
+          unit="кг"
+        />
+      </div>
 
       <p className="text-xs text-gray-500 mt-3">
         Модель: щотижня додається N нових клієнтів. Кожен у тиждень входу дає K₀ кг,
@@ -182,8 +179,8 @@ export function CohortLTV({ cohortChart }) {
     return {
       perCustomer,
       cumPerCustomer,
-      cohortCum: cumPerCustomer.map(v => v * cohortSize),
-      cohortPer: perCustomer.map(v => v * cohortSize)
+      cohortCum: cumPerCustomer.map(v => Math.round(v * cohortSize * 10) / 10),
+      cohortPer: perCustomer.map(v => Math.round(v * cohortSize * 10) / 10)
     };
   }, [horizon, cohortSize]);
 
@@ -199,7 +196,21 @@ export function CohortLTV({ cohortChart }) {
 
       <div className="mb-4">
         <h4 className="text-sm font-semibold text-gray-700 mb-2">Прогноз кг на тиждень (вся когорта)</h4>
-        <SimpleBarsChart data={data.cohortPer} labels={data.cohortPer.map((_, i) => `W+${i}`)} unit="кг" />
+        <ReactiveBars
+          data={data.cohortPer}
+          labels={data.cohortPer.map((_, i) => `W+${i}`)}
+          unit="кг"
+        />
+      </div>
+
+      <div className="mb-4">
+        <h4 className="text-sm font-semibold text-gray-700 mb-2">Кумулятивно (вся когорта)</h4>
+        <ReactiveBars
+          data={data.cohortCum}
+          labels={data.cohortCum.map((_, i) => `W+${i}`)}
+          unit="кг"
+          color="#2E75B6"
+        />
       </div>
 
       <p className="text-xs text-gray-500 mt-3">
@@ -230,21 +241,6 @@ function Slider({ label, value, min, max, onChange, suffix = "" }) {
       <input type="range" min={min} max={max} value={value}
              onChange={e => onChange(parseInt(e.target.value))}
              className="w-full accent-brand-600" />
-    </div>
-  );
-}
-
-function SimpleBarsChart({ data, labels, unit = "" }) {
-  const max = Math.max(...data, 1);
-  return (
-    <div className="flex items-end gap-1 h-48 bg-gray-50 p-3 rounded-lg">
-      {data.map((v, i) => (
-        <div key={i} className="flex-1 flex flex-col items-center justify-end" title={`${labels[i]}: ${fmt(v)} ${unit}`}>
-          <div className="text-[10px] text-gray-500 mb-1">{fmt(v)}</div>
-          <div className="w-full bg-brand-500 rounded-t" style={{ height: `${(v / max) * 80}%`, minHeight: 2 }} />
-          <div className="text-[10px] text-gray-400 mt-1">{labels[i]}</div>
-        </div>
-      ))}
     </div>
   );
 }
