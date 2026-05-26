@@ -1,6 +1,10 @@
 "use client";
 import { useMemo, useState } from "react";
-import { ForecastChart, ReactiveBars } from "@/components/Charts";
+import {
+  ResponsiveContainer, ComposedChart, LineChart, BarChart, Bar, Line, Area,
+  XAxis, YAxis, Tooltip, Legend, CartesianGrid
+} from "recharts";
+import { ReactiveBars } from "@/components/Charts";
 
 const fmt = n => n.toLocaleString("uk-UA", { maximumFractionDigits: 1 });
 
@@ -21,201 +25,229 @@ function linearRegression(y) {
   return { slope, intercept, stdErr };
 }
 
-// ---------- 1. Linear trend (kg, weekly) ----------
-export function LinearTrend({ weekly }) {
+// ---------- 1. Best / Likely / Worst scenario forecast ----------
+export function ScenarioForecast({ weekly }) {
   const [horizon, setHorizon] = useState(8);
+  const [bestMul, setBestMul] = useState(1.2);
+  const [worstMul, setWorstMul] = useState(0.8);
   const series = weekly.kg;
-
-  const { slope, intercept, stdErr } = useMemo(() => linearRegression(series), [series]);
+  const { slope, intercept } = useMemo(() => linearRegression(series), [series]);
 
   const data = useMemo(() => {
     const n = series.length;
     const labels = [...weekly.labels];
     const history = [...series];
-    const forecast = [...Array(n).fill(null)];
-    const ciLow = [...Array(n).fill(null)];
-    const ciHigh = [...Array(n).fill(null)];
+    const likely = [...Array(n).fill(null)];
+    const best = [...Array(n).fill(null)];
+    const worst = [...Array(n).fill(null)];
 
-    forecast[n - 1] = series[n - 1];
-    ciLow[n - 1] = series[n - 1];
-    ciHigh[n - 1] = series[n - 1];
+    likely[n - 1] = best[n - 1] = worst[n - 1] = series[n - 1];
 
     for (let i = 1; i <= horizon; i++) {
       const xi = n - 1 + i;
-      const pred = intercept + slope * xi;
+      const pred = Math.max(0, intercept + slope * xi);
       labels.push(`W+${i}`);
       history.push(null);
-      forecast.push(Math.max(0, pred));
-      ciLow.push(Math.max(0, pred - 1.96 * stdErr));
-      ciHigh.push(Math.max(0, pred + 1.96 * stdErr));
+      likely.push(pred);
+      best.push(pred * bestMul);
+      worst.push(pred * worstMul);
     }
-    return { labels, history, forecast, ciLow, ciHigh, startIdx: n - 1 };
-  }, [series, horizon, slope, intercept, stdErr, weekly.labels]);
+    return { labels, history, likely, best, worst, startIdx: n - 1 };
+  }, [series, horizon, slope, intercept, bestMul, worstMul, weekly.labels]);
 
-  const trendDir = slope > 0 ? "↗ зростання" : slope < 0 ? "↘ спад" : "→ стабільно";
+  const bestLabel = `Best (×${bestMul})`;
+  const worstLabel = `Worst (×${worstMul})`;
+  const dataPoints = data.labels.map((label, i) => ({
+    period: label,
+    "Факт": data.history[i],
+    "Найімовірніший": data.likely[i],
+    [bestLabel]: data.best[i],
+    [worstLabel]: data.worst[i],
+  }));
 
   return (
     <div>
       <div className="grid md:grid-cols-3 gap-4 mb-5 text-sm">
-        <Stat label="Нахил тренду" value={`${fmt(slope)} кг/тиждень`} sub={trendDir} />
-        <Stat label="Похибка моделі (σ)" value={`±${fmt(stdErr)} кг`} sub="95% інтервал ≈ ±1.96σ" />
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <label className="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-2 block">
-            Горизонт: {horizon} тижнів
-          </label>
-          <input type="range" min={2} max={26} value={horizon}
-                 onChange={e => setHorizon(parseInt(e.target.value))}
-                 className="w-full accent-brand-600" />
-        </div>
+        <Slider label="Best множник" value={bestMul} min={1.0} max={2.0} step={0.05} onChange={setBestMul} suffix="×" />
+        <Slider label="Worst множник" value={worstMul} min={0.3} max={1.0} step={0.05} onChange={setWorstMul} suffix="×" />
+        <Slider label="Горизонт, тижнів" value={horizon} min={2} max={26} onChange={setHorizon} />
       </div>
-      <ForecastChart
-        history={data.history}
-        forecast={data.forecast}
-        ciLow={data.ciLow}
-        ciHigh={data.ciHigh}
-        labels={data.labels}
-        forecastStartIdx={data.startIdx}
-        yLabel="кг"
-      />
+      <ResponsiveContainer width="100%" height={380}>
+        <LineChart data={dataPoints}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+          <XAxis dataKey="period" />
+          <YAxis tickFormatter={fmt} label={{ value: "кг", angle: -90, position: "insideLeft", style: { fontSize: 11, fill: "#6b7280" } }} />
+          <Tooltip formatter={v => fmt(v) + " кг"} />
+          <Legend wrapperStyle={{ fontSize: 12 }} />
+          <Line dataKey="Факт" stroke="#1F4E78" strokeWidth={3} dot={{ r: 4 }} connectNulls />
+          <Line dataKey={bestLabel} stroke="#10B981" strokeWidth={2} strokeDasharray="5 5" dot={{ r: 3 }} connectNulls />
+          <Line dataKey="Найімовірніший" stroke="#F59E0B" strokeWidth={2.5} strokeDasharray="6 4" dot={{ r: 3 }} connectNulls />
+          <Line dataKey={worstLabel} stroke="#DC2626" strokeWidth={2} strokeDasharray="5 5" dot={{ r: 3 }} connectNulls />
+        </LineChart>
+      </ResponsiveContainer>
       <p className="text-xs text-gray-500 mt-3">
-        ⚠️ Модель навчена на {series.length} тижнях. На малій вибірці лінійний тренд чутливий до викидів.
-        Для серйозного прогнозу — Prophet або ARIMA, але треба ≥3 місяці історії.
+        Базовий прогноз — лінійний тренд (нахил {fmt(slope)} кг/тижд). Best/Worst — множники.
       </p>
     </div>
   );
 }
 
-// ---------- 2. What-if calculator ----------
-export function WhatIfCalculator() {
-  const [newPerWeek, setNewPerWeek] = useState(10);
-  const [avgKgW0, setAvgKgW0] = useState(65);
-  const [retentionPct, setRetentionPct] = useState(40);
-  const [avgKgRepeat, setAvgKgRepeat] = useState(50);
-  const [weeks, setWeeks] = useState(12);
+// ---------- 2. Temperature regressor ----------
+export function TemperatureForecast({ weekly, weeklyForecastTemp, tempModel }) {
+  const [horizon, setHorizon] = useState(4);
+  const futureN = Math.min(horizon, weeklyForecastTemp.labels.length);
 
   const data = useMemo(() => {
-    const cohorts = [];
-    const weeklyKg = [];
-    const cumulKg = [];
-    let cumulative = 0;
+    const labels = [...weekly.labels, ...weeklyForecastTemp.labels.slice(0, futureN)];
+    const histKg = weekly.kg;
+    const histTemp = weekly.temperature;
+    const fcstTemp = weeklyForecastTemp.temperature.slice(0, futureN);
+    const fcstKg = fcstTemp.map(t => t != null ? Math.max(0, tempModel.intercept + tempModel.slope * t) : null);
 
-    for (let w = 0; w < weeks; w++) {
-      cohorts.push({ size: newPerWeek, week: w });
-      let weekTotal = 0;
-      cohorts.forEach(coh => {
-        const age = w - coh.week;
-        if (age === 0) {
-          weekTotal += coh.size * avgKgW0;
-        } else {
-          const remaining = coh.size * Math.pow(retentionPct / 100, age);
-          weekTotal += remaining * avgKgRepeat;
+    return labels.map((label, i) => ({
+      period: label,
+      "Факт кг": i < histKg.length ? histKg[i] : null,
+      "Прогноз кг": i >= histKg.length ? fcstKg[i - histKg.length] : (i === histKg.length - 1 ? histKg[i] : null),
+      "Темп °C": i < histTemp.length ? histTemp[i] : fcstTemp[i - histTemp.length],
+    }));
+  }, [weekly, weeklyForecastTemp, futureN, tempModel]);
+
+  const corrLabel = Math.abs(tempModel.correlation) >= 0.7 ? "сильна"
+                  : Math.abs(tempModel.correlation) >= 0.4 ? "помірна" : "слабка";
+
+  return (
+    <div>
+      <div className="grid md:grid-cols-3 gap-4 mb-5 text-sm">
+        <Stat label="Кореляція кг ↔ температура" value={tempModel.correlation.toFixed(2)} sub={corrLabel + " звʼязок"} />
+        <Stat label="Чутливість" value={`+${fmt(tempModel.slope)} кг/°C`} sub="приріст кг за +1°C" />
+        <Slider label="Горизонт прогнозу" value={horizon} min={1} max={Math.min(4, weeklyForecastTemp.labels.length)} onChange={setHorizon} suffix=" тижнів" />
+      </div>
+      <ResponsiveContainer width="100%" height={400}>
+        <ComposedChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+          <XAxis dataKey="period" />
+          <YAxis yAxisId="left" tickFormatter={fmt} label={{ value: "кг", angle: -90, position: "insideLeft", style: { fontSize: 11, fill: "#6b7280" } }} />
+          <YAxis yAxisId="right" orientation="right" tickFormatter={v => v + "°C"} label={{ value: "°C", angle: 90, position: "insideRight", style: { fontSize: 11, fill: "#6b7280" } }} />
+          <Tooltip formatter={(v, name) => name === "Темп °C" ? [v + "°C", name] : [fmt(v) + " кг", name]} />
+          <Legend wrapperStyle={{ fontSize: 12 }} />
+          <Line yAxisId="right" dataKey="Темп °C" stroke="#DC2626" strokeWidth={2} dot={{ r: 3 }} connectNulls />
+          <Bar yAxisId="left" dataKey="Факт кг" fill="#1F4E78" />
+          <Bar yAxisId="left" dataKey="Прогноз кг" fill="#F59E0B" />
+        </ComposedChart>
+      </ResponsiveContainer>
+      <p className="text-xs text-gray-500 mt-3">
+        Модель: <code>кг = {fmt(tempModel.intercept)} + {fmt(tempModel.slope)} × температура</code>.
+        Корреляція <b>{tempModel.correlation.toFixed(2)}</b> на 4 точках —
+        {Math.abs(tempModel.correlation) > 0.5 ? " тенденція є, але статистично слабка через малу вибірку." : " тенденція слабка, треба більше даних."}
+        Прогноз температури з open-meteo.com.
+      </p>
+    </div>
+  );
+}
+
+// ---------- 3. Bottom-up forecast (per-customer) ----------
+export function BottomUpForecast({ customers }) {
+  const [horizon, setHorizon] = useState(4);
+  const [growthPct, setGrowthPct] = useState(0);
+
+  const data = useMemo(() => {
+    const growth = 1 + growthPct / 100;
+    const weeks = [];
+    for (let i = 0; i < horizon; i++) {
+      let weekKg = 0;
+      let activeCount = 0;
+      customers.forEach(c => {
+        const weeklyRate = (c.kgPerMonth / 4.33) * growth;
+        // assume same rate continues; for new clients (1 week observed), discount
+        const stability = Math.min(1, c.weeksObserved / 4);
+        const expectedKg = weeklyRate * stability;
+        if (expectedKg > 0) {
+          weekKg += expectedKg;
+          activeCount++;
         }
       });
-      cumulative += weekTotal;
-      weeklyKg.push(Math.round(weekTotal * 10) / 10);
-      cumulKg.push(cumulative);
+      weeks.push({
+        period: `W+${i + 1}`,
+        kg: Math.round(weekKg * 10) / 10,
+        active: activeCount
+      });
     }
-    return { weeklyKg, cumulKg };
-  }, [newPerWeek, avgKgW0, retentionPct, avgKgRepeat, weeks]);
+    return weeks;
+  }, [customers, horizon, growthPct]);
 
-  const totalKg = data.cumulKg[data.cumulKg.length - 1] || 0;
+  const totalKg = data.reduce((sum, w) => sum + w.kg, 0);
 
   return (
     <div>
-      <div className="grid md:grid-cols-5 gap-4 mb-6">
-        <Slider label="Нових клієнтів/тиждень" value={newPerWeek} min={1} max={30} onChange={setNewPerWeek} />
-        <Slider label="Перший заказ, кг/клієнт" value={avgKgW0} min={20} max={150} onChange={setAvgKgW0} />
-        <Slider label="Retention W+1, %" value={retentionPct} min={10} max={90} onChange={setRetentionPct} suffix="%" />
-        <Slider label="Повторний заказ, кг" value={avgKgRepeat} min={10} max={100} onChange={setAvgKgRepeat} />
-        <Slider label="Горизонт, тижнів" value={weeks} min={4} max={26} onChange={setWeeks} />
+      <div className="grid md:grid-cols-3 gap-4 mb-5 text-sm">
+        <Slider label="Горизонт, тижнів" value={horizon} min={2} max={12} onChange={setHorizon} />
+        <Slider label="Загальне зростання, %" value={growthPct} min={-30} max={50} step={5} onChange={setGrowthPct} suffix="%" />
+        <Stat label={`Сумарно за ${horizon} тижнів`} value={fmt(totalKg)} sub="кг сировини" />
       </div>
-
-      <div className="grid md:grid-cols-3 gap-4 mb-5">
-        <Stat label={`Прогноз кг за ${weeks} тижнів`} value={fmt(totalKg)} sub="кг сировини" />
-        <Stat label="Середньотижневий обсяг" value={fmt(totalKg / weeks)} sub="кг/тиждень" />
-        <Stat label="Активних клієнтів на кінець" value={fmt(newPerWeek * weeks * (retentionPct / 100))} sub="оцінка" />
-      </div>
-
-      <div className="mb-4">
-        <h4 className="text-sm font-semibold text-gray-700 mb-2">Прогноз кг на тиждень</h4>
-        <ReactiveBars
-          data={data.weeklyKg}
-          labels={data.weeklyKg.map((_, i) => `W${i + 1}`)}
-          unit="кг"
-        />
-      </div>
-
+      <ResponsiveContainer width="100%" height={350}>
+        <ComposedChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+          <XAxis dataKey="period" />
+          <YAxis yAxisId="left" tickFormatter={fmt} label={{ value: "кг", angle: -90, position: "insideLeft", style: { fontSize: 11, fill: "#6b7280" } }} />
+          <YAxis yAxisId="right" orientation="right" tickFormatter={fmt} label={{ value: "клієнтів", angle: 90, position: "insideRight", style: { fontSize: 11, fill: "#6b7280" } }} />
+          <Tooltip formatter={(v, name) => [name === "active" ? v : fmt(v) + " кг", name === "kg" ? "Прогноз кг" : "Активних клієнтів"]} />
+          <Legend wrapperStyle={{ fontSize: 12 }} />
+          <Bar yAxisId="left" dataKey="kg" name="Прогноз кг" fill="#1F4E78" />
+          <Line yAxisId="right" dataKey="active" name="Активних клієнтів" stroke="#F59E0B" strokeWidth={2.5} dot={{ r: 4 }} />
+        </ComposedChart>
+      </ResponsiveContainer>
       <p className="text-xs text-gray-500 mt-3">
-        Модель: щотижня додається N нових клієнтів. Кожен у тиждень входу дає K₀ кг,
-        у наступні тижні з імовірністю R повертається й дає K кг.
+        Сума по всіх 47 клієнтах: <code>прогноз тижня = Σ (кг/міс клієнта / 4.33) × (1 + зростання%) × (тижнів_спост / 4)</code>.
+        Знижка за стабільністю для нових клієнтів (1 тиждень спост. = 25% впевненості).
       </p>
     </div>
   );
 }
 
-// ---------- 3. Cohort LTV projection ----------
-export function CohortLTV({ cohortChart }) {
-  const w19 = cohortChart.datasets[0];
-  const totalCohortSize = parseInt(w19.label.match(/(\d+)\s*клієнтів/)?.[1] || "25");
+// ---------- 4. Lead indicator (new customers → future kg) ----------
+export function LeadIndicator({ weekly, cohortChart }) {
+  // Calculate avg kg/new customer in first week of cohort
+  const avgFirstWeekKg = cohortChart.datasets.reduce((sum, ds, i) => {
+    const m = ds.label.match(/(\d+)\s*клієнтів/);
+    const size = m ? parseInt(m[1]) : 1;
+    return sum + (ds.data[0] / size);
+  }, 0) / cohortChart.datasets.length;
 
-  const observed = w19.data.map(v => v / totalCohortSize);
-  const tail = observed.slice(-2).reduce((a, v) => a + v, 0) / 2;
+  const data = weekly.labels.map((label, i) => ({
+    period: label,
+    "Нових клієнтів": weekly.newCustomers[i],
+    "Кг (факт)": weekly.kg[i],
+    "Кг від нових (оцінка)": Math.round(weekly.newCustomers[i] * avgFirstWeekKg * 10) / 10,
+  }));
 
-  const [horizon, setHorizon] = useState(12);
-  const [cohortSize, setCohortSize] = useState(15);
-
-  const data = useMemo(() => {
-    const perCustomer = [];
-    const cumPerCustomer = [];
-    let cum = 0;
-    for (let i = 0; i < horizon; i++) {
-      let val;
-      if (i < observed.length) val = observed[i];
-      else val = Math.max(0, tail * Math.pow(0.92, i - observed.length + 1));
-      perCustomer.push(val);
-      cum += val;
-      cumPerCustomer.push(cum);
-    }
-    return {
-      perCustomer,
-      cumPerCustomer,
-      cohortCum: cumPerCustomer.map(v => Math.round(v * cohortSize * 10) / 10),
-      cohortPer: perCustomer.map(v => Math.round(v * cohortSize * 10) / 10)
-    };
-  }, [horizon, cohortSize]);
-
-  const totalKg = data.cohortCum[data.cohortCum.length - 1] || 0;
+  const newTrend = weekly.newCustomers.slice(-3).reduce((a, b) => a + b, 0) / 3;
+  const earlierTrend = weekly.newCustomers[0] || 0;
+  const trendChange = ((newTrend - earlierTrend) / Math.max(earlierTrend, 1) * 100);
 
   return (
     <div>
-      <div className="grid md:grid-cols-3 gap-4 mb-6">
-        <Slider label="Розмір нової когорти" value={cohortSize} min={3} max={40} onChange={setCohortSize} suffix=" клієнтів" />
-        <Slider label="Горизонт прогнозу" value={horizon} min={4} max={26} onChange={setHorizon} suffix=" тижнів" />
-        <Stat label={`Кумулятивний LTV за ${horizon} тиж.`} value={fmt(totalKg)} sub="кг" />
+      <div className="grid md:grid-cols-3 gap-4 mb-5 text-sm">
+        <Stat label="Сер. кг від 1 нового клієнта" value={fmt(avgFirstWeekKg)} sub="у тиждень входу" />
+        <Stat label="Нових/тиждень (середнє)" value={fmt(newTrend)} sub="за останні 3 тижні" />
+        <Stat label="Зміна притоку" value={`${trendChange > 0 ? "+" : ""}${trendChange.toFixed(0)}%`} sub={trendChange < -30 ? "критичне падіння" : trendChange < 0 ? "падіння" : "ріст"} />
       </div>
-
-      <div className="mb-4">
-        <h4 className="text-sm font-semibold text-gray-700 mb-2">Прогноз кг на тиждень (вся когорта)</h4>
-        <ReactiveBars
-          data={data.cohortPer}
-          labels={data.cohortPer.map((_, i) => `W+${i}`)}
-          unit="кг"
-        />
-      </div>
-
-      <div className="mb-4">
-        <h4 className="text-sm font-semibold text-gray-700 mb-2">Кумулятивно (вся когорта)</h4>
-        <ReactiveBars
-          data={data.cohortCum}
-          labels={data.cohortCum.map((_, i) => `W+${i}`)}
-          unit="кг"
-          color="#2E75B6"
-        />
-      </div>
-
+      <ResponsiveContainer width="100%" height={350}>
+        <ComposedChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+          <XAxis dataKey="period" />
+          <YAxis yAxisId="left" tickFormatter={fmt} label={{ value: "кг", angle: -90, position: "insideLeft", style: { fontSize: 11, fill: "#6b7280" } }} />
+          <YAxis yAxisId="right" orientation="right" tickFormatter={fmt} label={{ value: "нових клієнтів", angle: 90, position: "insideRight", style: { fontSize: 11, fill: "#6b7280" } }} />
+          <Tooltip formatter={(v, name) => name.includes("Нових") ? v : [fmt(v) + " кг", name]} />
+          <Legend wrapperStyle={{ fontSize: 12 }} />
+          <Bar yAxisId="left" dataKey="Кг (факт)" fill="#1F4E78" />
+          <Bar yAxisId="left" dataKey="Кг від нових (оцінка)" fill="#10B981" />
+          <Line yAxisId="right" dataKey="Нових клієнтів" stroke="#F59E0B" strokeWidth={3} dot={{ r: 5 }} />
+        </ComposedChart>
+      </ResponsiveContainer>
       <p className="text-xs text-gray-500 mt-3">
-        Модель: беремо спостережену криву "кг на клієнта" для когорти W19, екстраполюємо хвостом
-        із загасанням 8% на тиждень. Множимо на розмір нової когорти.
+        <b>Lead indicator:</b> залучення нових клієнтів сьогодні визначає кг через 2-4 тижні (поки активна когорта).
+        Падіння нових клієнтів — найраніший сигнал майбутнього падіння виручки.
+        Зелене = частка кг від нових клієнтів (W+0 заказ).
       </p>
     </div>
   );
@@ -232,15 +264,67 @@ function Stat({ label, value, sub }) {
   );
 }
 
-function Slider({ label, value, min, max, onChange, suffix = "" }) {
+function Slider({ label, value, min, max, onChange, suffix = "", step = 1 }) {
   return (
     <div className="bg-gray-50 p-4 rounded-lg">
       <label className="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-2 block">
         {label}: <span className="text-brand-600 font-bold">{value}{suffix}</span>
       </label>
-      <input type="range" min={min} max={max} value={value}
-             onChange={e => onChange(parseInt(e.target.value))}
+      <input type="range" min={min} max={max} step={step} value={value}
+             onChange={e => onChange(parseFloat(e.target.value))}
              className="w-full accent-brand-600" />
+    </div>
+  );
+}
+
+// ---------- What-if (kept for compat) ----------
+export function WhatIfCalculator() {
+  const [newPerWeek, setNewPerWeek] = useState(10);
+  const [avgKgW0, setAvgKgW0] = useState(65);
+  const [retentionPct, setRetentionPct] = useState(40);
+  const [avgKgRepeat, setAvgKgRepeat] = useState(50);
+  const [weeks, setWeeks] = useState(12);
+
+  const data = useMemo(() => {
+    const cohorts = [];
+    const weeklyKg = [];
+    const cumulKg = [];
+    let cumulative = 0;
+    for (let w = 0; w < weeks; w++) {
+      cohorts.push({ size: newPerWeek, week: w });
+      let weekTotal = 0;
+      cohorts.forEach(coh => {
+        const age = w - coh.week;
+        if (age === 0) weekTotal += coh.size * avgKgW0;
+        else weekTotal += coh.size * Math.pow(retentionPct / 100, age) * avgKgRepeat;
+      });
+      cumulative += weekTotal;
+      weeklyKg.push(Math.round(weekTotal * 10) / 10);
+      cumulKg.push(cumulative);
+    }
+    return { weeklyKg, cumulKg };
+  }, [newPerWeek, avgKgW0, retentionPct, avgKgRepeat, weeks]);
+
+  const totalKg = data.cumulKg[data.cumulKg.length - 1] || 0;
+
+  return (
+    <div>
+      <div className="grid md:grid-cols-5 gap-4 mb-6">
+        <Slider label="Нових клієнтів/тиждень" value={newPerWeek} min={1} max={30} onChange={setNewPerWeek} />
+        <Slider label="Перший заказ, кг" value={avgKgW0} min={20} max={150} onChange={setAvgKgW0} />
+        <Slider label="Retention W+1, %" value={retentionPct} min={10} max={90} onChange={setRetentionPct} suffix="%" />
+        <Slider label="Повторний заказ, кг" value={avgKgRepeat} min={10} max={100} onChange={setAvgKgRepeat} />
+        <Slider label="Горизонт, тижнів" value={weeks} min={4} max={26} onChange={setWeeks} />
+      </div>
+      <div className="grid md:grid-cols-3 gap-4 mb-5">
+        <Stat label={`Прогноз за ${weeks} тижнів`} value={fmt(totalKg)} sub="кг" />
+        <Stat label="Середньотижневий" value={fmt(totalKg / weeks)} sub="кг/тиждень" />
+        <Stat label="Активних на кінець" value={fmt(newPerWeek * weeks * (retentionPct / 100))} sub="оцінка" />
+      </div>
+      <div>
+        <h4 className="text-sm font-semibold text-gray-700 mb-2">Прогноз кг на тиждень</h4>
+        <ReactiveBars data={data.weeklyKg} labels={data.weeklyKg.map((_, i) => `W${i+1}`)} unit="кг" />
+      </div>
     </div>
   );
 }

@@ -25,6 +25,12 @@
       "W21 (18-24.05)",
       "W22 (25-31.05)"
     ],
+    "weekNums": [
+      19,
+      20,
+      21,
+      22
+    ],
     "kg": [
       1776.7,
       1391.5,
@@ -42,6 +48,193 @@
       14,
       8,
       0
+    ],
+    "temperature": [
+      19.2,
+      15.3,
+      20.3,
+      15.4
+    ]
+  },
+  "weeklyForecastTemp": {
+    "labels": [
+      "W23 (01.06-07.06)",
+      "W24 (08.06-14.06)",
+      "W25 (15.06-21.06)",
+      "W26 (22.06-28.06)"
+    ],
+    "weekNums": [
+      23,
+      24,
+      25,
+      26
+    ],
+    "temperature": [
+      21.1,
+      20.8,
+      null,
+      null
+    ]
+  },
+  "tempModel": {
+    "correlation": 0.562,
+    "slope": 151.4,
+    "intercept": -1504.6,
+    "historical": [
+      {
+        "date": "2026-05-04",
+        "temp": 18.9
+      },
+      {
+        "date": "2026-05-05",
+        "temp": 21.6
+      },
+      {
+        "date": "2026-05-06",
+        "temp": 22.8
+      },
+      {
+        "date": "2026-05-07",
+        "temp": 22.6
+      },
+      {
+        "date": "2026-05-08",
+        "temp": 18.1
+      },
+      {
+        "date": "2026-05-09",
+        "temp": 16.6
+      },
+      {
+        "date": "2026-05-10",
+        "temp": 13.9
+      },
+      {
+        "date": "2026-05-11",
+        "temp": 14.2
+      },
+      {
+        "date": "2026-05-12",
+        "temp": 15.9
+      },
+      {
+        "date": "2026-05-13",
+        "temp": 13.5
+      },
+      {
+        "date": "2026-05-14",
+        "temp": 12.6
+      },
+      {
+        "date": "2026-05-15",
+        "temp": 15.3
+      },
+      {
+        "date": "2026-05-16",
+        "temp": 17.9
+      },
+      {
+        "date": "2026-05-17",
+        "temp": 17.9
+      },
+      {
+        "date": "2026-05-18",
+        "temp": 17.8
+      },
+      {
+        "date": "2026-05-19",
+        "temp": 18.9
+      },
+      {
+        "date": "2026-05-20",
+        "temp": 19.7
+      },
+      {
+        "date": "2026-05-21",
+        "temp": 21.8
+      },
+      {
+        "date": "2026-05-22",
+        "temp": 23.1
+      },
+      {
+        "date": "2026-05-23",
+        "temp": 20.6
+      },
+      {
+        "date": "2026-05-24",
+        "temp": 20.4
+      },
+      {
+        "date": "2026-05-25",
+        "temp": 20.7
+      },
+      {
+        "date": "2026-05-26",
+        "temp": 19.1
+      }
+    ],
+    "forecast": [
+      {
+        "date": "2026-05-27",
+        "temp": 17.5
+      },
+      {
+        "date": "2026-05-28",
+        "temp": 13.6
+      },
+      {
+        "date": "2026-05-29",
+        "temp": 12.0
+      },
+      {
+        "date": "2026-05-30",
+        "temp": 11.3
+      },
+      {
+        "date": "2026-05-31",
+        "temp": 13.6
+      },
+      {
+        "date": "2026-06-01",
+        "temp": 16.0
+      },
+      {
+        "date": "2026-06-02",
+        "temp": 17.0
+      },
+      {
+        "date": "2026-06-03",
+        "temp": 20.2
+      },
+      {
+        "date": "2026-06-04",
+        "temp": 21.4
+      },
+      {
+        "date": "2026-06-05",
+        "temp": 23.5
+      },
+      {
+        "date": "2026-06-06",
+        "temp": 23.9
+      },
+      {
+        "date": "2026-06-07",
+        "temp": 25.5
+      },
+      {
+        "date": "2026-06-08",
+        "temp": 22.8
+      },
+      {
+        "date": "2026-06-09",
+        "temp": 20.0
+      },
+      {
+        "date": "2026-06-10",
+        "temp": 19.7
+      }
     ]
   },
   "weekday": {
@@ -408,5 +601,900 @@
         null
       ]
     ]
-  }
+  },
+  "customers": [
+    {
+      "name": "Майданович Р. О.",
+      "city": "м. Київ",
+      "firstDate": "2026-05-07",
+      "lastDate": "2026-05-23",
+      "firstWeek": "W19 (4-10.05)",
+      "weeksObserved": 4,
+      "weeksActive": 3,
+      "weeksSinceLast": 1,
+      "totalKg": 558.5,
+      "kgPerMonth": 604.6,
+      "ordersCount": 5,
+      "avgKgOrder": 111.7,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Моспанчук О. А.",
+      "city": "м. Київ",
+      "firstDate": "2026-05-13",
+      "lastDate": "2026-05-23",
+      "firstWeek": "W20 (11-17.05)",
+      "weeksObserved": 3,
+      "weeksActive": 2,
+      "weeksSinceLast": 1,
+      "totalKg": 197.4,
+      "kgPerMonth": 284.9,
+      "ordersCount": 2,
+      "avgKgOrder": 98.7,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Герасименко Д. В.",
+      "city": "м. Київ",
+      "firstDate": "2026-05-16",
+      "lastDate": "2026-05-23",
+      "firstWeek": "W20 (11-17.05)",
+      "weeksObserved": 3,
+      "weeksActive": 2,
+      "weeksSinceLast": 1,
+      "totalKg": 183.0,
+      "kgPerMonth": 264.1,
+      "ordersCount": 3,
+      "avgKgOrder": 61.0,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Бабенко О. С.",
+      "city": "с. Гатне",
+      "firstDate": "2026-05-15",
+      "lastDate": "2026-05-15",
+      "firstWeek": "W20 (11-17.05)",
+      "weeksObserved": 3,
+      "weeksActive": 1,
+      "weeksSinceLast": 2,
+      "totalKg": 134.8,
+      "kgPerMonth": 194.6,
+      "ordersCount": 1,
+      "avgKgOrder": 134.8,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Голоколосов Д. О.",
+      "city": "м. Київ",
+      "firstDate": "2026-05-13",
+      "lastDate": "2026-05-13",
+      "firstWeek": "W20 (11-17.05)",
+      "weeksObserved": 3,
+      "weeksActive": 1,
+      "weeksSinceLast": 2,
+      "totalKg": 134.8,
+      "kgPerMonth": 194.6,
+      "ordersCount": 1,
+      "avgKgOrder": 134.8,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Балакірська В. А.",
+      "city": "м. Київ",
+      "firstDate": "2026-05-08",
+      "lastDate": "2026-05-26",
+      "firstWeek": "W19 (4-10.05)",
+      "weeksObserved": 4,
+      "weeksActive": 2,
+      "weeksSinceLast": 0,
+      "totalKg": 173.3,
+      "kgPerMonth": 187.6,
+      "ordersCount": 2,
+      "avgKgOrder": 86.7,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Олійник П. В.",
+      "city": "с. Забір'я",
+      "firstDate": "2026-05-07",
+      "lastDate": "2026-05-21",
+      "firstWeek": "W19 (4-10.05)",
+      "weeksObserved": 4,
+      "weeksActive": 3,
+      "weeksSinceLast": 1,
+      "totalKg": 173.3,
+      "kgPerMonth": 187.6,
+      "ordersCount": 3,
+      "avgKgOrder": 57.8,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Кольвах Т. А.",
+      "city": "м. Київ",
+      "firstDate": "2026-05-09",
+      "lastDate": "2026-05-23",
+      "firstWeek": "W19 (4-10.05)",
+      "weeksObserved": 4,
+      "weeksActive": 2,
+      "weeksSinceLast": 1,
+      "totalKg": 168.5,
+      "kgPerMonth": 182.4,
+      "ordersCount": 2,
+      "avgKgOrder": 84.3,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Мельниченко М. В.",
+      "city": "с. Демидів",
+      "firstDate": "2026-05-07",
+      "lastDate": "2026-05-14",
+      "firstWeek": "W19 (4-10.05)",
+      "weeksObserved": 4,
+      "weeksActive": 2,
+      "weeksSinceLast": 2,
+      "totalKg": 168.5,
+      "kgPerMonth": 182.4,
+      "ordersCount": 2,
+      "avgKgOrder": 84.3,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Скрицький О. О.",
+      "city": "м. Київ",
+      "firstDate": "2026-05-08",
+      "lastDate": "2026-05-21",
+      "firstWeek": "W19 (4-10.05)",
+      "weeksObserved": 4,
+      "weeksActive": 2,
+      "weeksSinceLast": 1,
+      "totalKg": 168.5,
+      "kgPerMonth": 182.4,
+      "ordersCount": 3,
+      "avgKgOrder": 56.2,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Чернов М. Л.",
+      "city": "м. Київ",
+      "firstDate": "2026-05-15",
+      "lastDate": "2026-05-22",
+      "firstWeek": "W20 (11-17.05)",
+      "weeksObserved": 3,
+      "weeksActive": 2,
+      "weeksSinceLast": 1,
+      "totalKg": 123.2,
+      "kgPerMonth": 177.8,
+      "ordersCount": 3,
+      "avgKgOrder": 41.1,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Гільова О. В.",
+      "city": "с. Гатне",
+      "firstDate": "2026-05-16",
+      "lastDate": "2026-05-23",
+      "firstWeek": "W20 (11-17.05)",
+      "weeksObserved": 3,
+      "weeksActive": 2,
+      "weeksSinceLast": 1,
+      "totalKg": 96.3,
+      "kgPerMonth": 139.0,
+      "ordersCount": 2,
+      "avgKgOrder": 48.2,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Чорна Н. М.",
+      "city": "м. Київ",
+      "firstDate": "2026-05-19",
+      "lastDate": "2026-05-19",
+      "firstWeek": "W21 (18-24.05)",
+      "weeksObserved": 2,
+      "weeksActive": 1,
+      "weeksSinceLast": 1,
+      "totalKg": 62.6,
+      "kgPerMonth": 135.5,
+      "ordersCount": 1,
+      "avgKgOrder": 62.6,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "1708 ТОВ",
+      "city": "м. Київ",
+      "firstDate": "2026-05-15",
+      "lastDate": "2026-05-26",
+      "firstWeek": "W20 (11-17.05)",
+      "weeksObserved": 3,
+      "weeksActive": 2,
+      "weeksSinceLast": 0,
+      "totalKg": 91.5,
+      "kgPerMonth": 132.0,
+      "ordersCount": 2,
+      "avgKgOrder": 45.7,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Марченко Ю. О.",
+      "city": "м. Ірпінь",
+      "firstDate": "2026-05-16",
+      "lastDate": "2026-05-26",
+      "firstWeek": "W20 (11-17.05)",
+      "weeksObserved": 3,
+      "weeksActive": 2,
+      "weeksSinceLast": 0,
+      "totalKg": 86.7,
+      "kgPerMonth": 125.1,
+      "ordersCount": 2,
+      "avgKgOrder": 43.3,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Самикіна Н. Д",
+      "city": "м. Київ",
+      "firstDate": "2026-05-20",
+      "lastDate": "2026-05-23",
+      "firstWeek": "W21 (18-24.05)",
+      "weeksObserved": 2,
+      "weeksActive": 1,
+      "weeksSinceLast": 1,
+      "totalKg": 57.8,
+      "kgPerMonth": 125.1,
+      "ordersCount": 2,
+      "avgKgOrder": 28.9,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Самнідзе Е. А.",
+      "city": "с. Новосілки",
+      "firstDate": "2026-05-09",
+      "lastDate": "2026-05-22",
+      "firstWeek": "W19 (4-10.05)",
+      "weeksObserved": 4,
+      "weeksActive": 2,
+      "weeksSinceLast": 1,
+      "totalKg": 115.6,
+      "kgPerMonth": 125.1,
+      "ordersCount": 3,
+      "avgKgOrder": 38.5,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "АКОПЯН ВААГН",
+      "city": "с. Крюківщина",
+      "firstDate": "2026-05-07",
+      "lastDate": "2026-05-21",
+      "firstWeek": "W19 (4-10.05)",
+      "weeksObserved": 4,
+      "weeksActive": 2,
+      "weeksSinceLast": 1,
+      "totalKg": 105.9,
+      "kgPerMonth": 114.7,
+      "ordersCount": 2,
+      "avgKgOrder": 53.0,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Андрейко Д. М.",
+      "city": "м. Ірпінь",
+      "firstDate": "2026-05-09",
+      "lastDate": "2026-05-26",
+      "firstWeek": "W19 (4-10.05)",
+      "weeksObserved": 4,
+      "weeksActive": 2,
+      "weeksSinceLast": 0,
+      "totalKg": 105.9,
+      "kgPerMonth": 114.7,
+      "ordersCount": 2,
+      "avgKgOrder": 53.0,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Чорноіван О. В.",
+      "city": "м. Київ",
+      "firstDate": "2026-05-08",
+      "lastDate": "2026-05-21",
+      "firstWeek": "W19 (4-10.05)",
+      "weeksObserved": 4,
+      "weeksActive": 3,
+      "weeksSinceLast": 1,
+      "totalKg": 105.9,
+      "kgPerMonth": 114.7,
+      "ordersCount": 3,
+      "avgKgOrder": 35.3,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Ібрагімова Р. С.",
+      "city": "м. Вишневе",
+      "firstDate": "2026-05-12",
+      "lastDate": "2026-05-12",
+      "firstWeek": "W20 (11-17.05)",
+      "weeksObserved": 3,
+      "weeksActive": 1,
+      "weeksSinceLast": 2,
+      "totalKg": 72.2,
+      "kgPerMonth": 104.2,
+      "ordersCount": 1,
+      "avgKgOrder": 72.2,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Качура А. В.",
+      "city": "м. Київ",
+      "firstDate": "2026-05-20",
+      "lastDate": "2026-05-23",
+      "firstWeek": "W21 (18-24.05)",
+      "weeksObserved": 2,
+      "weeksActive": 1,
+      "weeksSinceLast": 1,
+      "totalKg": 48.2,
+      "kgPerMonth": 104.2,
+      "ordersCount": 2,
+      "avgKgOrder": 24.1,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Осадча О. В.",
+      "city": "с. Гаврилівка",
+      "firstDate": "2026-05-07",
+      "lastDate": "2026-05-14",
+      "firstWeek": "W19 (4-10.05)",
+      "weeksObserved": 4,
+      "weeksActive": 2,
+      "weeksSinceLast": 2,
+      "totalKg": 96.3,
+      "kgPerMonth": 104.2,
+      "ordersCount": 2,
+      "avgKgOrder": 48.2,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Салтановський М. С.",
+      "city": "м. Київ",
+      "firstDate": "2026-05-09",
+      "lastDate": "2026-05-23",
+      "firstWeek": "W19 (4-10.05)",
+      "weeksObserved": 4,
+      "weeksActive": 2,
+      "weeksSinceLast": 1,
+      "totalKg": 96.3,
+      "kgPerMonth": 104.2,
+      "ordersCount": 2,
+      "avgKgOrder": 48.2,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Сидорук М. Д.",
+      "city": "м. Київ",
+      "firstDate": "2026-05-14",
+      "lastDate": "2026-05-14",
+      "firstWeek": "W20 (11-17.05)",
+      "weeksObserved": 3,
+      "weeksActive": 1,
+      "weeksSinceLast": 2,
+      "totalKg": 67.4,
+      "kgPerMonth": 97.3,
+      "ordersCount": 1,
+      "avgKgOrder": 67.4,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Бобровська Т. І.",
+      "city": "с. Софіївська Борщагівка",
+      "firstDate": "2026-05-07",
+      "lastDate": "2026-05-22",
+      "firstWeek": "W19 (4-10.05)",
+      "weeksObserved": 4,
+      "weeksActive": 3,
+      "weeksSinceLast": 1,
+      "totalKg": 86.7,
+      "kgPerMonth": 93.8,
+      "ordersCount": 3,
+      "avgKgOrder": 28.9,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Нємєш О. С.",
+      "city": "м. Київ",
+      "firstDate": "2026-05-09",
+      "lastDate": "2026-05-23",
+      "firstWeek": "W19 (4-10.05)",
+      "weeksObserved": 4,
+      "weeksActive": 2,
+      "weeksSinceLast": 1,
+      "totalKg": 86.7,
+      "kgPerMonth": 93.8,
+      "ordersCount": 2,
+      "avgKgOrder": 43.3,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Абашова Л. М.",
+      "city": "м. Київ",
+      "firstDate": "2026-05-08",
+      "lastDate": "2026-05-20",
+      "firstWeek": "W19 (4-10.05)",
+      "weeksObserved": 4,
+      "weeksActive": 2,
+      "weeksSinceLast": 1,
+      "totalKg": 81.9,
+      "kgPerMonth": 88.6,
+      "ordersCount": 2,
+      "avgKgOrder": 40.9,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Годун Т. П.",
+      "city": "м. Київ",
+      "firstDate": "2026-05-09",
+      "lastDate": "2026-05-23",
+      "firstWeek": "W19 (4-10.05)",
+      "weeksObserved": 4,
+      "weeksActive": 2,
+      "weeksSinceLast": 1,
+      "totalKg": 81.9,
+      "kgPerMonth": 88.6,
+      "ordersCount": 2,
+      "avgKgOrder": 40.9,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Авдєєв О. О.",
+      "city": "м. Буча",
+      "firstDate": "2026-05-16",
+      "lastDate": "2026-05-23",
+      "firstWeek": "W20 (11-17.05)",
+      "weeksObserved": 3,
+      "weeksActive": 2,
+      "weeksSinceLast": 1,
+      "totalKg": 57.8,
+      "kgPerMonth": 83.4,
+      "ordersCount": 2,
+      "avgKgOrder": 28.9,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Ткаченко О.К.",
+      "city": "м. Бровари",
+      "firstDate": "2026-05-19",
+      "lastDate": "2026-05-19",
+      "firstWeek": "W21 (18-24.05)",
+      "weeksObserved": 2,
+      "weeksActive": 1,
+      "weeksSinceLast": 1,
+      "totalKg": 38.5,
+      "kgPerMonth": 83.4,
+      "ordersCount": 1,
+      "avgKgOrder": 38.5,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Частніков А. І.",
+      "city": "м. Ірпінь",
+      "firstDate": "2026-05-16",
+      "lastDate": "2026-05-23",
+      "firstWeek": "W20 (11-17.05)",
+      "weeksObserved": 3,
+      "weeksActive": 2,
+      "weeksSinceLast": 1,
+      "totalKg": 57.8,
+      "kgPerMonth": 83.4,
+      "ordersCount": 2,
+      "avgKgOrder": 28.9,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Годун В. Ю.",
+      "city": "м. Київ",
+      "firstDate": "2026-05-09",
+      "lastDate": "2026-05-23",
+      "firstWeek": "W19 (4-10.05)",
+      "weeksObserved": 4,
+      "weeksActive": 2,
+      "weeksSinceLast": 1,
+      "totalKg": 72.2,
+      "kgPerMonth": 78.2,
+      "ordersCount": 2,
+      "avgKgOrder": 36.1,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "БОВАС",
+      "city": "м. Київ",
+      "firstDate": "2026-05-09",
+      "lastDate": "2026-05-09",
+      "firstWeek": "W19 (4-10.05)",
+      "weeksObserved": 4,
+      "weeksActive": 1,
+      "weeksSinceLast": 3,
+      "totalKg": 67.4,
+      "kgPerMonth": 73.0,
+      "ordersCount": 1,
+      "avgKgOrder": 67.4,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Бобровський О. В.",
+      "city": "с. Петропавлівська Борщагівка",
+      "firstDate": "2026-05-08",
+      "lastDate": "2026-05-14",
+      "firstWeek": "W19 (4-10.05)",
+      "weeksObserved": 4,
+      "weeksActive": 2,
+      "weeksSinceLast": 2,
+      "totalKg": 67.4,
+      "kgPerMonth": 73.0,
+      "ordersCount": 2,
+      "avgKgOrder": 33.7,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Грищенко Т. В.",
+      "city": "м. Київ",
+      "firstDate": "2026-05-09",
+      "lastDate": "2026-05-09",
+      "firstWeek": "W19 (4-10.05)",
+      "weeksObserved": 4,
+      "weeksActive": 1,
+      "weeksSinceLast": 3,
+      "totalKg": 67.4,
+      "kgPerMonth": 73.0,
+      "ordersCount": 1,
+      "avgKgOrder": 67.4,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Делікатний Д. П.",
+      "city": "м. Київ",
+      "firstDate": "2026-05-09",
+      "lastDate": "2026-05-09",
+      "firstWeek": "W19 (4-10.05)",
+      "weeksObserved": 4,
+      "weeksActive": 1,
+      "weeksSinceLast": 3,
+      "totalKg": 67.4,
+      "kgPerMonth": 73.0,
+      "ordersCount": 1,
+      "avgKgOrder": 67.4,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Паніва К. О.",
+      "city": "м. Київ",
+      "firstDate": "2026-05-09",
+      "lastDate": "2026-05-09",
+      "firstWeek": "W19 (4-10.05)",
+      "weeksObserved": 4,
+      "weeksActive": 1,
+      "weeksSinceLast": 3,
+      "totalKg": 67.4,
+      "kgPerMonth": 73.0,
+      "ordersCount": 1,
+      "avgKgOrder": 67.4,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Федченко В. О.",
+      "city": "м. Київ",
+      "firstDate": "2026-05-09",
+      "lastDate": "2026-05-09",
+      "firstWeek": "W19 (4-10.05)",
+      "weeksObserved": 4,
+      "weeksActive": 1,
+      "weeksSinceLast": 3,
+      "totalKg": 67.4,
+      "kgPerMonth": 73.0,
+      "ordersCount": 1,
+      "avgKgOrder": 67.4,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Безвершук М. І.",
+      "city": "м. Київ",
+      "firstDate": "2026-05-23",
+      "lastDate": "2026-05-23",
+      "firstWeek": "W21 (18-24.05)",
+      "weeksObserved": 2,
+      "weeksActive": 1,
+      "weeksSinceLast": 1,
+      "totalKg": 28.9,
+      "kgPerMonth": 62.5,
+      "ordersCount": 1,
+      "avgKgOrder": 28.9,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Веремієць Г. П.",
+      "city": "м. Київ",
+      "firstDate": "2026-05-08",
+      "lastDate": "2026-05-22",
+      "firstWeek": "W19 (4-10.05)",
+      "weeksObserved": 4,
+      "weeksActive": 2,
+      "weeksSinceLast": 1,
+      "totalKg": 57.8,
+      "kgPerMonth": 62.5,
+      "ordersCount": 2,
+      "avgKgOrder": 28.9,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Овсяннікова Н. В.",
+      "city": "м. Київ",
+      "firstDate": "2026-05-23",
+      "lastDate": "2026-05-23",
+      "firstWeek": "W21 (18-24.05)",
+      "weeksObserved": 2,
+      "weeksActive": 1,
+      "weeksSinceLast": 1,
+      "totalKg": 28.9,
+      "kgPerMonth": 62.5,
+      "ordersCount": 1,
+      "avgKgOrder": 28.9,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Ткаченко О. М.",
+      "city": "м. Вишгород",
+      "firstDate": "2026-05-07",
+      "lastDate": "2026-05-07",
+      "firstWeek": "W19 (4-10.05)",
+      "weeksObserved": 4,
+      "weeksActive": 1,
+      "weeksSinceLast": 3,
+      "totalKg": 48.2,
+      "kgPerMonth": 52.1,
+      "ordersCount": 1,
+      "avgKgOrder": 48.2,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Батильчук Р. Р.",
+      "city": "м. Київ",
+      "firstDate": "2026-05-16",
+      "lastDate": "2026-05-26",
+      "firstWeek": "W20 (11-17.05)",
+      "weeksObserved": 3,
+      "weeksActive": 2,
+      "weeksSinceLast": 0,
+      "totalKg": 28.9,
+      "kgPerMonth": 41.7,
+      "ordersCount": 2,
+      "avgKgOrder": 14.4,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Вербняк О. Ж.",
+      "city": "м. Ірпінь",
+      "firstDate": "2026-05-16",
+      "lastDate": "2026-05-23",
+      "firstWeek": "W20 (11-17.05)",
+      "weeksObserved": 3,
+      "weeksActive": 2,
+      "weeksSinceLast": 1,
+      "totalKg": 28.9,
+      "kgPerMonth": 41.7,
+      "ordersCount": 2,
+      "avgKgOrder": 14.4,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Гріза М. В.",
+      "city": "Невідомо",
+      "firstDate": "2026-05-23",
+      "lastDate": "2026-05-23",
+      "firstWeek": "W21 (18-24.05)",
+      "weeksObserved": 2,
+      "weeksActive": 1,
+      "weeksSinceLast": 1,
+      "totalKg": 19.3,
+      "kgPerMonth": 41.7,
+      "ordersCount": 1,
+      "avgKgOrder": 19.3,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    },
+    {
+      "name": "Моторна Вікторія Сергіївна",
+      "city": "м. Ірпінь",
+      "firstDate": "2026-05-19",
+      "lastDate": "2026-05-19",
+      "firstWeek": "W21 (18-24.05)",
+      "weeksObserved": 2,
+      "weeksActive": 1,
+      "weeksSinceLast": 1,
+      "totalKg": 19.3,
+      "kgPerMonth": 41.7,
+      "ordersCount": 1,
+      "avgKgOrder": 19.3,
+      "flavorsCount": 2,
+      "flavors": [
+        "Крем-пломбір",
+        "Три молока"
+      ]
+    }
+  ]
 }

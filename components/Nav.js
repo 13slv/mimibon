@@ -4,8 +4,9 @@ import { usePathname } from "next/navigation";
 
 const links = [
   { href: "/",          label: "Огляд" },
-  { href: "/forecast",  label: "Прогнози" },
+  { href: "/customers", label: "Клієнти" },
   { href: "/cohorts",   label: "Когорти" },
+  { href: "/forecast",  label: "Прогнози" },
 ];
 
 export default function Nav() {
