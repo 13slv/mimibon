@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
+import Link from "next/link";
 
 const fmt = n => (typeof n === "number" ? n.toLocaleString("uk-UA", { maximumFractionDigits: 1 }) : n);
 
@@ -303,7 +304,10 @@ function CustomerRow({ customer, threshold }) {
   return (
     <tr className="border-t border-gray-100 hover:bg-gray-50">
       <td className="p-3 font-medium text-gray-800">
-        {c.name}
+        <Link href={`/customers/${c.slug}`} className="text-brand-600 hover:text-brand-700 hover:underline inline-flex items-center gap-1">
+          {c.name}
+          <svg className="w-3 h-3 opacity-60" viewBox="0 0 20 20" fill="currentColor"><path d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" /></svg>
+        </Link>
         <div className="text-xs text-gray-400 mt-0.5">
           {c.weeksObserved}тиж спост., {c.ordersCount} заказів, {c.flavorsCount}/2 ароматів
           {c.weeksSinceLast > 0 && <span className="text-red-500 ml-2">• мовчить {c.weeksSinceLast}тиж</span>}
