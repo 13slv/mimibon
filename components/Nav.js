@@ -21,7 +21,7 @@ export default function Nav() {
             <p className="text-sm opacity-90">Період даних: 07.05.2026 – 26.05.2026</p>
           </div>
         </div>
-        <nav className="flex gap-2">
+        <nav className="flex gap-2 items-center">
           {links.map(l => {
             const active = path === l.href;
             return (
@@ -35,6 +35,11 @@ export default function Nav() {
               </Link>
             );
           })}
+          <a href="/api/logout"
+             className="px-3 py-2 rounded-md text-sm text-white/70 hover:text-white hover:bg-white/10 transition"
+             title="Вийти">
+            ⏻
+          </a>
         </nav>
       </div>
     </header>
