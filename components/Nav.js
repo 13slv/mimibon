@@ -17,7 +17,7 @@ export default function Nav() {
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-brand-500 font-black text-lg shadow-sm">М</div>
           <div>
-            <h1 className="text-xl md:text-2xl font-bold tracking-tight">MimiBon — аналітика продажів</h1>
+            <h1 className="text-xl md:text-2xl font-bold tracking-tight">MimiBon — аналітика продажів — демо-версія</h1>
             <p className="text-sm opacity-90">Період даних: 07.05.2026 – 26.05.2026</p>
           </div>
         </div>
