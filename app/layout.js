@@ -13,7 +13,7 @@ export default function RootLayout({ children }) {
         <Nav />
         <main className="max-w-7xl mx-auto p-4 md:p-8">{children}</main>
         <footer className="text-center text-gray-400 text-sm py-6">
-          Дашборд згенеровано з вивантаження "Продажі морозива КСТ 07-26.05.xlsx"
+          MimiBon — аналітика продажів — демо-версія
         </footer>
       </body>
     </html>
