@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body { background:#f5f7fa; color:#1f2937; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+html, body {
+  background: #fdf8fb;
+  color: #262626;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+}
 * { box-sizing: border-box; }
-.recharts-wrapper text { font-size: 12px; fill: #4b5563; }
+.recharts-wrapper text { font-size: 12px; fill: #525252; }

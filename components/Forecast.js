@@ -1,14 +1,19 @@
 "use client";
 import { useMemo, useState } from "react";
 import {
-  ResponsiveContainer, ComposedChart, LineChart, BarChart, Bar, Line, Area,
+  ResponsiveContainer, ComposedChart, LineChart, BarChart, Bar, Line,
   XAxis, YAxis, Tooltip, Legend, CartesianGrid
 } from "recharts";
 import { ReactiveBars } from "@/components/Charts";
 
+const PRIMARY = "#d6006d";
+const ACCENT = "#f88d2a";
+const BURGUNDY = "#942d5c";
+const GREEN = "#16a34a";
+const RED = "#dc2626";
+
 const fmt = n => n.toLocaleString("uk-UA", { maximumFractionDigits: 1 });
 
-// ---------- math helpers ----------
 function linearRegression(y) {
   const n = y.length;
   const x = y.map((_, i) => i);
@@ -25,7 +30,7 @@ function linearRegression(y) {
   return { slope, intercept, stdErr };
 }
 
-// ---------- 1. Best / Likely / Worst scenario forecast ----------
+// ---------- 1. Best / Likely / Worst ----------
 export function ScenarioForecast({ weekly }) {
   const [horizon, setHorizon] = useState(8);
   const [bestMul, setBestMul] = useState(1.2);
@@ -40,9 +45,7 @@ export function ScenarioForecast({ weekly }) {
     const likely = [...Array(n).fill(null)];
     const best = [...Array(n).fill(null)];
     const worst = [...Array(n).fill(null)];
-
     likely[n - 1] = best[n - 1] = worst[n - 1] = series[n - 1];
-
     for (let i = 1; i <= horizon; i++) {
       const xi = n - 1 + i;
       const pred = Math.max(0, intercept + slope * xi);
@@ -76,23 +79,23 @@ export function ScenarioForecast({ weekly }) {
         <LineChart data={dataPoints}>
           <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
           <XAxis dataKey="period" />
-          <YAxis tickFormatter={fmt} label={{ value: "кг", angle: -90, position: "insideLeft", style: { fontSize: 11, fill: "#6b7280" } }} />
+          <YAxis tickFormatter={fmt} label={{ value: "кг", angle: -90, position: "insideLeft", style: { fontSize: 11, fill: "#525252" } }} />
           <Tooltip formatter={v => fmt(v) + " кг"} />
           <Legend wrapperStyle={{ fontSize: 12 }} />
-          <Line dataKey="Факт" stroke="#1F4E78" strokeWidth={3} dot={{ r: 4 }} connectNulls />
-          <Line dataKey={bestLabel} stroke="#10B981" strokeWidth={2} strokeDasharray="5 5" dot={{ r: 3 }} connectNulls />
-          <Line dataKey="Найімовірніший" stroke="#F59E0B" strokeWidth={2.5} strokeDasharray="6 4" dot={{ r: 3 }} connectNulls />
-          <Line dataKey={worstLabel} stroke="#DC2626" strokeWidth={2} strokeDasharray="5 5" dot={{ r: 3 }} connectNulls />
+          <Line dataKey="Факт" stroke={PRIMARY} strokeWidth={3} dot={{ r: 4 }} connectNulls />
+          <Line dataKey={bestLabel} stroke={GREEN} strokeWidth={2} strokeDasharray="5 5" dot={{ r: 3 }} connectNulls />
+          <Line dataKey="Найімовірніший" stroke={ACCENT} strokeWidth={2.5} strokeDasharray="6 4" dot={{ r: 3 }} connectNulls />
+          <Line dataKey={worstLabel} stroke={RED} strokeWidth={2} strokeDasharray="5 5" dot={{ r: 3 }} connectNulls />
         </LineChart>
       </ResponsiveContainer>
       <p className="text-xs text-gray-500 mt-3">
-        Базовий прогноз — лінійний тренд (нахил {fmt(slope)} кг/тижд). Best/Worst — множники.
+        Базовий прогноз — лінійний тренд (нахил {fmt(slope)} кг/тижд). Best/Worst — множники до прогнозу.
       </p>
     </div>
   );
 }
 
-// ---------- 2. Temperature regressor ----------
+// ---------- 2. Temperature ----------
 export function TemperatureForecast({ weekly, weeklyForecastTemp, tempModel }) {
   const [horizon, setHorizon] = useState(4);
   const futureN = Math.min(horizon, weeklyForecastTemp.labels.length);
@@ -103,7 +106,6 @@ export function TemperatureForecast({ weekly, weeklyForecastTemp, tempModel }) {
     const histTemp = weekly.temperature;
     const fcstTemp = weeklyForecastTemp.temperature.slice(0, futureN);
     const fcstKg = fcstTemp.map(t => t != null ? Math.max(0, tempModel.intercept + tempModel.slope * t) : null);
-
     return labels.map((label, i) => ({
       period: label,
       "Факт кг": i < histKg.length ? histKg[i] : null,
@@ -126,13 +128,13 @@ export function TemperatureForecast({ weekly, weeklyForecastTemp, tempModel }) {
         <ComposedChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
           <XAxis dataKey="period" />
-          <YAxis yAxisId="left" tickFormatter={fmt} label={{ value: "кг", angle: -90, position: "insideLeft", style: { fontSize: 11, fill: "#6b7280" } }} />
-          <YAxis yAxisId="right" orientation="right" tickFormatter={v => v + "°C"} label={{ value: "°C", angle: 90, position: "insideRight", style: { fontSize: 11, fill: "#6b7280" } }} />
+          <YAxis yAxisId="left" tickFormatter={fmt} label={{ value: "кг", angle: -90, position: "insideLeft", style: { fontSize: 11, fill: "#525252" } }} />
+          <YAxis yAxisId="right" orientation="right" tickFormatter={v => v + "°C"} label={{ value: "°C", angle: 90, position: "insideRight", style: { fontSize: 11, fill: "#525252" } }} />
           <Tooltip formatter={(v, name) => name === "Темп °C" ? [v + "°C", name] : [fmt(v) + " кг", name]} />
           <Legend wrapperStyle={{ fontSize: 12 }} />
-          <Line yAxisId="right" dataKey="Темп °C" stroke="#DC2626" strokeWidth={2} dot={{ r: 3 }} connectNulls />
-          <Bar yAxisId="left" dataKey="Факт кг" fill="#1F4E78" />
-          <Bar yAxisId="left" dataKey="Прогноз кг" fill="#F59E0B" />
+          <Line yAxisId="right" dataKey="Темп °C" stroke={RED} strokeWidth={2} dot={{ r: 3 }} connectNulls />
+          <Bar yAxisId="left" dataKey="Факт кг" fill={PRIMARY} />
+          <Bar yAxisId="left" dataKey="Прогноз кг" fill={ACCENT} />
         </ComposedChart>
       </ResponsiveContainer>
       <p className="text-xs text-gray-500 mt-3">
@@ -145,7 +147,7 @@ export function TemperatureForecast({ weekly, weeklyForecastTemp, tempModel }) {
   );
 }
 
-// ---------- 3. Bottom-up forecast (per-customer) ----------
+// ---------- 3. Bottom-up ----------
 export function BottomUpForecast({ customers }) {
   const [horizon, setHorizon] = useState(4);
   const [growthPct, setGrowthPct] = useState(0);
@@ -158,7 +160,6 @@ export function BottomUpForecast({ customers }) {
       let activeCount = 0;
       customers.forEach(c => {
         const weeklyRate = (c.kgPerMonth / 4.33) * growth;
-        // assume same rate continues; for new clients (1 week observed), discount
         const stability = Math.min(1, c.weeksObserved / 4);
         const expectedKg = weeklyRate * stability;
         if (expectedKg > 0) {
@@ -166,11 +167,7 @@ export function BottomUpForecast({ customers }) {
           activeCount++;
         }
       });
-      weeks.push({
-        period: `W+${i + 1}`,
-        kg: Math.round(weekKg * 10) / 10,
-        active: activeCount
-      });
+      weeks.push({ period: `W+${i + 1}`, kg: Math.round(weekKg * 10) / 10, active: activeCount });
     }
     return weeks;
   }, [customers, horizon, growthPct]);
@@ -188,26 +185,24 @@ export function BottomUpForecast({ customers }) {
         <ComposedChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
           <XAxis dataKey="period" />
-          <YAxis yAxisId="left" tickFormatter={fmt} label={{ value: "кг", angle: -90, position: "insideLeft", style: { fontSize: 11, fill: "#6b7280" } }} />
-          <YAxis yAxisId="right" orientation="right" tickFormatter={fmt} label={{ value: "клієнтів", angle: 90, position: "insideRight", style: { fontSize: 11, fill: "#6b7280" } }} />
+          <YAxis yAxisId="left" tickFormatter={fmt} label={{ value: "кг", angle: -90, position: "insideLeft", style: { fontSize: 11, fill: "#525252" } }} />
+          <YAxis yAxisId="right" orientation="right" tickFormatter={fmt} label={{ value: "клієнтів", angle: 90, position: "insideRight", style: { fontSize: 11, fill: "#525252" } }} />
           <Tooltip formatter={(v, name) => [name === "active" ? v : fmt(v) + " кг", name === "kg" ? "Прогноз кг" : "Активних клієнтів"]} />
           <Legend wrapperStyle={{ fontSize: 12 }} />
-          <Bar yAxisId="left" dataKey="kg" name="Прогноз кг" fill="#1F4E78" />
-          <Line yAxisId="right" dataKey="active" name="Активних клієнтів" stroke="#F59E0B" strokeWidth={2.5} dot={{ r: 4 }} />
+          <Bar yAxisId="left" dataKey="kg" name="Прогноз кг" fill={PRIMARY} />
+          <Line yAxisId="right" dataKey="active" name="Активних клієнтів" stroke={ACCENT} strokeWidth={2.5} dot={{ r: 4 }} />
         </ComposedChart>
       </ResponsiveContainer>
       <p className="text-xs text-gray-500 mt-3">
         Сума по всіх 47 клієнтах: <code>прогноз тижня = Σ (кг/міс клієнта / 4.33) × (1 + зростання%) × (тижнів_спост / 4)</code>.
-        Знижка за стабільністю для нових клієнтів (1 тиждень спост. = 25% впевненості).
       </p>
     </div>
   );
 }
 
-// ---------- 4. Lead indicator (new customers → future kg) ----------
+// ---------- 4. Lead indicator ----------
 export function LeadIndicator({ weekly, cohortChart }) {
-  // Calculate avg kg/new customer in first week of cohort
-  const avgFirstWeekKg = cohortChart.datasets.reduce((sum, ds, i) => {
+  const avgFirstWeekKg = cohortChart.datasets.reduce((sum, ds) => {
     const m = ds.label.match(/(\d+)\s*клієнтів/);
     const size = m ? parseInt(m[1]) : 1;
     return sum + (ds.data[0] / size);
@@ -235,20 +230,15 @@ export function LeadIndicator({ weekly, cohortChart }) {
         <ComposedChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
           <XAxis dataKey="period" />
-          <YAxis yAxisId="left" tickFormatter={fmt} label={{ value: "кг", angle: -90, position: "insideLeft", style: { fontSize: 11, fill: "#6b7280" } }} />
-          <YAxis yAxisId="right" orientation="right" tickFormatter={fmt} label={{ value: "нових клієнтів", angle: 90, position: "insideRight", style: { fontSize: 11, fill: "#6b7280" } }} />
+          <YAxis yAxisId="left" tickFormatter={fmt} label={{ value: "кг", angle: -90, position: "insideLeft", style: { fontSize: 11, fill: "#525252" } }} />
+          <YAxis yAxisId="right" orientation="right" tickFormatter={fmt} label={{ value: "нових клієнтів", angle: 90, position: "insideRight", style: { fontSize: 11, fill: "#525252" } }} />
           <Tooltip formatter={(v, name) => name.includes("Нових") ? v : [fmt(v) + " кг", name]} />
           <Legend wrapperStyle={{ fontSize: 12 }} />
-          <Bar yAxisId="left" dataKey="Кг (факт)" fill="#1F4E78" />
-          <Bar yAxisId="left" dataKey="Кг від нових (оцінка)" fill="#10B981" />
-          <Line yAxisId="right" dataKey="Нових клієнтів" stroke="#F59E0B" strokeWidth={3} dot={{ r: 5 }} />
+          <Bar yAxisId="left" dataKey="Кг (факт)" fill={PRIMARY} />
+          <Bar yAxisId="left" dataKey="Кг від нових (оцінка)" fill={GREEN} />
+          <Line yAxisId="right" dataKey="Нових клієнтів" stroke={ACCENT} strokeWidth={3} dot={{ r: 5 }} />
         </ComposedChart>
       </ResponsiveContainer>
-      <p className="text-xs text-gray-500 mt-3">
-        <b>Lead indicator:</b> залучення нових клієнтів сьогодні визначає кг через 2-4 тижні (поки активна когорта).
-        Падіння нових клієнтів — найраніший сигнал майбутнього падіння виручки.
-        Зелене = частка кг від нових клієнтів (W+0 заказ).
-      </p>
     </div>
   );
 }
@@ -256,7 +246,7 @@ export function LeadIndicator({ weekly, cohortChart }) {
 // ---------- shared UI ----------
 function Stat({ label, value, sub }) {
   return (
-    <div className="bg-gray-50 p-4 rounded-lg">
+    <div className="bg-brand-50 p-4 rounded-lg">
       <div className="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-1">{label}</div>
       <div className="text-xl font-bold text-brand-600">{value}</div>
       {sub && <div className="text-xs text-gray-400 mt-1">{sub}</div>}
@@ -266,18 +256,17 @@ function Stat({ label, value, sub }) {
 
 function Slider({ label, value, min, max, onChange, suffix = "", step = 1 }) {
   return (
-    <div className="bg-gray-50 p-4 rounded-lg">
+    <div className="bg-brand-50 p-4 rounded-lg">
       <label className="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-2 block">
         {label}: <span className="text-brand-600 font-bold">{value}{suffix}</span>
       </label>
       <input type="range" min={min} max={max} step={step} value={value}
              onChange={e => onChange(parseFloat(e.target.value))}
-             className="w-full accent-brand-600" />
+             className="w-full accent-brand-500" />
     </div>
   );
 }
 
-// ---------- What-if (kept for compat) ----------
 export function WhatIfCalculator() {
   const [newPerWeek, setNewPerWeek] = useState(10);
   const [avgKgW0, setAvgKgW0] = useState(65);
@@ -323,7 +312,7 @@ export function WhatIfCalculator() {
       </div>
       <div>
         <h4 className="text-sm font-semibold text-gray-700 mb-2">Прогноз кг на тиждень</h4>
-        <ReactiveBars data={data.weeklyKg} labels={data.weeklyKg.map((_, i) => `W${i+1}`)} unit="кг" />
+        <ReactiveBars data={data.weeklyKg} labels={data.weeklyKg.map((_, i) => `W${i+1}`)} unit="кг" color={PRIMARY} />
       </div>
     </div>
   );

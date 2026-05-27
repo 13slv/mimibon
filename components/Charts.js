@@ -6,18 +6,26 @@ import {
   ComposedChart, Area
 } from "recharts";
 
-const PALETTE = ["#1F4E78", "#2E75B6", "#5B9BD5", "#9BC2E6", "#BDD7EE", "#DEEBF7"];
+// MimiBon palette
+const PALETTE = ["#d6006d", "#f97fb5", "#942d5c", "#f88d2a", "#ffc493", "#fed9ea"];
+const PRIMARY = "#d6006d";
+const PRIMARY_DARK = "#942d5c";
+const ACCENT = "#f88d2a";
+const ACCENT_LIGHT = "#ffc493";
+const GREEN = "#16a34a";
+const RED = "#dc2626";
 
 const fmt = n => (typeof n === "number" ? n.toLocaleString("uk-UA", { maximumFractionDigits: 1 }) : n);
 
-// ---------- Pie (now used for flavor split) ----------
+// ---------- Pie (flavor split) ----------
 export function ProductPie({ labels, values }) {
   const data = labels.map((l, i) => ({ name: l, value: values[i] }));
   return (
     <ResponsiveContainer width="100%" height={300}>
       <PieChart>
-        <Pie data={data} dataKey="value" nameKey="name" outerRadius={100} innerRadius={50} label={d => `${d.name}: ${fmt(d.value)} кг`}>
-          {data.map((_, i) => <Cell key={i} fill={PALETTE[i % PALETTE.length]} />)}
+        <Pie data={data} dataKey="value" nameKey="name" outerRadius={100} innerRadius={50}
+             label={d => `${d.name}: ${fmt(d.value)} кг`}>
+          {data.map((_, i) => <Cell key={i} fill={i === 0 ? PRIMARY : ACCENT} />)}
         </Pie>
         <Tooltip formatter={v => fmt(v) + " кг"} />
       </PieChart>
@@ -29,7 +37,7 @@ export function ProductPie({ labels, values }) {
 export function WeekdayBar({ labels, values }) {
   const data = labels.map((l, i) => ({
     day: l, value: values[i],
-    fill: i === 5 ? "#F59E0B" : values[i] === 0 ? "#E5E7EB" : "#5B9BD5"
+    fill: i === 5 ? ACCENT : values[i] === 0 ? "#E5E7EB" : PRIMARY
   }));
   return (
     <ResponsiveContainer width="100%" height={300}>
@@ -46,33 +54,30 @@ export function WeekdayBar({ labels, values }) {
   );
 }
 
-// ---------- Weekly Combo (kg bars + active/new customer lines) ----------
+// ---------- Weekly Combo ----------
 export function WeeklyCombo({ labels, kg, customers, newCustomers }) {
   const data = labels.map((l, i) => ({
-    week: l,
-    kg: kg[i],
-    customers: customers[i],
-    newCustomers: newCustomers[i]
+    week: l, kg: kg[i], customers: customers[i], newCustomers: newCustomers[i]
   }));
   return (
     <ResponsiveContainer width="100%" height={400}>
       <ComposedChart data={data}>
         <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
         <XAxis dataKey="week" />
-        <YAxis yAxisId="left" tickFormatter={fmt} label={{ value: "кг сировини", angle: -90, position: "insideLeft", style: { fontSize: 11, fill: "#6b7280" } }} />
-        <YAxis yAxisId="right" orientation="right" tickFormatter={fmt} label={{ value: "клієнтів", angle: 90, position: "insideRight", style: { fontSize: 11, fill: "#6b7280" } }} />
+        <YAxis yAxisId="left" tickFormatter={fmt} label={{ value: "кг сировини", angle: -90, position: "insideLeft", style: { fontSize: 11, fill: "#525252" } }} />
+        <YAxis yAxisId="right" orientation="right" tickFormatter={fmt} label={{ value: "клієнтів", angle: 90, position: "insideRight", style: { fontSize: 11, fill: "#525252" } }} />
         <Tooltip formatter={(v, name) => [name === "Сировина (кг)" ? fmt(v) + " кг" : v, name]} />
         <Legend wrapperStyle={{ fontSize: 12 }} />
-        <Bar yAxisId="left" dataKey="kg" name="Сировина (кг)" fill="#1F4E78" />
-        <Line yAxisId="right" type="monotone" dataKey="customers" name="Активних клієнтів" stroke="#F59E0B" strokeWidth={2.5} dot={{ r: 4 }} />
-        <Line yAxisId="right" type="monotone" dataKey="newCustomers" name="Нових клієнтів" stroke="#10B981" strokeWidth={2.5} strokeDasharray="5 5" dot={{ r: 4 }} />
+        <Bar yAxisId="left" dataKey="kg" name="Сировина (кг)" fill={PRIMARY} />
+        <Line yAxisId="right" type="monotone" dataKey="customers" name="Активних клієнтів" stroke={ACCENT} strokeWidth={2.5} dot={{ r: 4 }} />
+        <Line yAxisId="right" type="monotone" dataKey="newCustomers" name="Нових клієнтів" stroke={GREEN} strokeWidth={2.5} strokeDasharray="5 5" dot={{ r: 4 }} />
       </ComposedChart>
     </ResponsiveContainer>
   );
 }
 
-// ---------- Horizontal Bar (kg) ----------
-export function HorizontalBar({ labels, values, color = "#1F4E78", height = 400, unit = "кг" }) {
+// ---------- Horizontal Bar ----------
+export function HorizontalBar({ labels, values, color = PRIMARY, height = 400, unit = "кг" }) {
   const data = labels.map((l, i) => ({ name: l, value: values[i] }));
   return (
     <ResponsiveContainer width="100%" height={height}>
@@ -87,8 +92,9 @@ export function HorizontalBar({ labels, values, color = "#1F4E78", height = 400,
   );
 }
 
-// ---------- Cohort Grouped Bar (kg per period) ----------
+// ---------- Cohort Grouped Bar ----------
 export function CohortBars({ chartData }) {
+  const COHORT_COLORS = [PRIMARY, "#f97fb5", "#f3b2d4"];
   const flatData = chartData.labels.map((label, i) => {
     const row = { period: label };
     chartData.datasets.forEach(ds => { row[ds.label] = ds.data[i] ?? 0; });
@@ -99,19 +105,20 @@ export function CohortBars({ chartData }) {
       <BarChart data={flatData}>
         <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
         <XAxis dataKey="period" />
-        <YAxis tickFormatter={fmt} label={{ value: "кг сировини", angle: -90, position: "insideLeft", style: { fontSize: 11, fill: "#6b7280" } }} />
+        <YAxis tickFormatter={fmt} label={{ value: "кг сировини", angle: -90, position: "insideLeft", style: { fontSize: 11, fill: "#525252" } }} />
         <Tooltip formatter={v => fmt(v) + " кг"} />
         <Legend wrapperStyle={{ fontSize: 11 }} />
-        {chartData.datasets.map(ds => (
-          <Bar key={ds.label} dataKey={ds.label} fill={ds.backgroundColor} />
+        {chartData.datasets.map((ds, i) => (
+          <Bar key={ds.label} dataKey={ds.label} fill={COHORT_COLORS[i % COHORT_COLORS.length]} />
         ))}
       </BarChart>
     </ResponsiveContainer>
   );
 }
 
-// ---------- Multi-Line Chart ----------
+// ---------- Multi-Line ----------
 export function MultiLine({ chartData, yLabel, yFormatter = fmt, domain }) {
+  const COHORT_COLORS = [PRIMARY, "#f97fb5", "#f3b2d4"];
   const flatData = chartData.labels.map((label, i) => {
     const row = { period: label };
     chartData.datasets.forEach(ds => { row[ds.label] = ds.data[i] ?? null; });
@@ -122,12 +129,12 @@ export function MultiLine({ chartData, yLabel, yFormatter = fmt, domain }) {
       <LineChart data={flatData}>
         <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
         <XAxis dataKey="period" />
-        <YAxis domain={domain} tickFormatter={yFormatter} label={yLabel ? { value: yLabel, angle: -90, position: "insideLeft", style: { fontSize: 11, fill: "#6b7280" } } : undefined} />
+        <YAxis domain={domain} tickFormatter={yFormatter} label={yLabel ? { value: yLabel, angle: -90, position: "insideLeft", style: { fontSize: 11, fill: "#525252" } } : undefined} />
         <Tooltip formatter={yFormatter} />
         <Legend wrapperStyle={{ fontSize: 11 }} />
-        {chartData.datasets.map(ds => (
+        {chartData.datasets.map((ds, i) => (
           <Line key={ds.label} type="monotone" dataKey={ds.label}
-                stroke={ds.borderColor} strokeWidth={2.5}
+                stroke={COHORT_COLORS[i % COHORT_COLORS.length]} strokeWidth={2.5}
                 dot={{ r: 4 }} connectNulls />
         ))}
       </LineChart>
@@ -137,6 +144,7 @@ export function MultiLine({ chartData, yLabel, yFormatter = fmt, domain }) {
 
 // ---------- Retention Dual ----------
 export function RetentionDual({ retentionData, avgKgData }) {
+  const COHORT_COLORS = [PRIMARY, "#f97fb5", "#f3b2d4"];
   const data = retentionData.labels.map((label, i) => {
     const row = { period: label };
     retentionData.datasets.forEach(ds => { row[`ret_${ds.label}`] = ds.data[i] ?? null; });
@@ -148,27 +156,27 @@ export function RetentionDual({ retentionData, avgKgData }) {
       <ComposedChart data={data}>
         <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
         <XAxis dataKey="period" />
-        <YAxis yAxisId="left" domain={[0, 100]} tickFormatter={v => v + "%"} label={{ value: "Retention %", angle: -90, position: "insideLeft", style: { fontSize: 11, fill: "#6b7280" } }} />
-        <YAxis yAxisId="right" orientation="right" tickFormatter={fmt} label={{ value: "кг/активний клієнт", angle: 90, position: "insideRight", style: { fontSize: 11, fill: "#6b7280" } }} />
+        <YAxis yAxisId="left" domain={[0, 100]} tickFormatter={v => v + "%"} label={{ value: "Retention %", angle: -90, position: "insideLeft", style: { fontSize: 11, fill: "#525252" } }} />
+        <YAxis yAxisId="right" orientation="right" tickFormatter={fmt} label={{ value: "кг/активний клієнт", angle: 90, position: "insideRight", style: { fontSize: 11, fill: "#525252" } }} />
         <Tooltip formatter={(v, name) => name.startsWith("ret_") ? [v + "%", name.slice(4)] : [fmt(v) + " кг", name.slice(3)]} />
         <Legend wrapperStyle={{ fontSize: 11 }}
                 payload={[
-                  ...retentionData.datasets.map(ds => ({ value: `${ds.label} • retention %`, type: "line", color: ds.borderColor })),
-                  ...avgKgData.datasets.map(ds => ({ value: `${ds.label} • кг/клієнт`, type: "rect", color: ds.borderColor + "80" }))
+                  ...retentionData.datasets.map((ds, i) => ({ value: `${ds.label} • retention %`, type: "line", color: COHORT_COLORS[i % COHORT_COLORS.length] })),
+                  ...avgKgData.datasets.map((ds, i) => ({ value: `${ds.label} • кг/клієнт`, type: "rect", color: COHORT_COLORS[i % COHORT_COLORS.length] + "80" }))
                 ]} />
-        {avgKgData.datasets.map(ds => (
-          <Bar yAxisId="right" key={`bar_${ds.label}`} dataKey={`kg_${ds.label}`} fill={ds.borderColor + "55"} />
+        {avgKgData.datasets.map((ds, i) => (
+          <Bar yAxisId="right" key={`bar_${ds.label}`} dataKey={`kg_${ds.label}`} fill={COHORT_COLORS[i % COHORT_COLORS.length] + "55"} />
         ))}
-        {retentionData.datasets.map(ds => (
+        {retentionData.datasets.map((ds, i) => (
           <Line yAxisId="left" key={`line_${ds.label}`} type="monotone" dataKey={`ret_${ds.label}`}
-                stroke={ds.borderColor} strokeWidth={2.5} dot={{ r: 5 }} connectNulls />
+                stroke={COHORT_COLORS[i % COHORT_COLORS.length]} strokeWidth={2.5} dot={{ r: 5 }} connectNulls />
         ))}
       </ComposedChart>
     </ResponsiveContainer>
   );
 }
 
-// ---------- Cohort heatmap ----------
+// ---------- Cohort heatmap (MimiBon pink scale) ----------
 export function CohortHeatmap({ matrix, metric = "kg" }) {
   const values = matrix[metric === "kg" ? "kg" : metric === "active" ? "active" : "avgKgPerActive"];
   const flat = values.flat().filter(v => v !== null && v !== undefined && v !== 0);
@@ -179,13 +187,14 @@ export function CohortHeatmap({ matrix, metric = "kg" }) {
     if (v === null || v === undefined) return "#f9fafb";
     if (v === 0) return "#f3f4f6";
     const ratio = (v - min) / (max - min || 1);
-    const intensity = Math.round(ratio * 100);
-    return `hsl(207, 70%, ${95 - intensity * 0.55}%)`;
+    // pink scale: from very light pink to deep MimiBon pink
+    const lightness = 95 - ratio * 55;  // 95% → 40%
+    return `hsl(327, 100%, ${lightness}%)`;
   };
   const textColor = (v) => {
     if (v === null || v === undefined || v === 0) return "#9ca3af";
     const ratio = (v - min) / (max - min || 1);
-    return ratio > 0.5 ? "#fff" : "#1f2937";
+    return ratio > 0.5 ? "#fff" : "#262626";
   };
   const label = (v) => {
     if (v === null || v === undefined) return "—";
@@ -260,8 +269,8 @@ export function CohortStatsTable({ rows }) {
   );
 }
 
-// ---------- Simple reactive bar chart (replaces SimpleBarsChart) ----------
-export function ReactiveBars({ data, labels, unit = "кг", color = "#1F4E78", height = 240 }) {
+// ---------- Reactive bars ----------
+export function ReactiveBars({ data, labels, unit = "кг", color = PRIMARY, height = 240 }) {
   const chartData = labels.map((l, i) => ({ name: l, value: data[i] }));
   return (
     <ResponsiveContainer width="100%" height={height}>
@@ -276,7 +285,7 @@ export function ReactiveBars({ data, labels, unit = "кг", color = "#1F4E78", h
   );
 }
 
-// ---------- Forecast Line with Confidence Band ----------
+// ---------- Forecast chart ----------
 export function ForecastChart({ history, forecast, ciLow, ciHigh, labels, forecastStartIdx, yLabel = "кг" }) {
   const data = labels.map((label, i) => ({
     period: label,
@@ -292,9 +301,9 @@ export function ForecastChart({ history, forecast, ciLow, ciHigh, labels, foreca
         <YAxis tickFormatter={fmt} />
         <Tooltip formatter={v => Array.isArray(v) ? `${fmt(v[0])}–${fmt(v[1])}` : fmt(v)} />
         <Legend wrapperStyle={{ fontSize: 12 }} />
-        <Area dataKey="ciRange" stroke={false} fill="#5B9BD5" fillOpacity={0.18} name="95% інтервал" />
-        <Line dataKey="history" stroke="#1F4E78" strokeWidth={2.5} dot={{ r: 3 }} name={`Факт (${yLabel})`} />
-        <Line dataKey="forecast" stroke="#F59E0B" strokeWidth={2.5} strokeDasharray="6 4" dot={{ r: 3 }} name={`Прогноз (${yLabel})`} />
+        <Area dataKey="ciRange" stroke={false} fill={PRIMARY} fillOpacity={0.15} name="95% інтервал" />
+        <Line dataKey="history" stroke={PRIMARY} strokeWidth={2.5} dot={{ r: 3 }} name={`Факт (${yLabel})`} />
+        <Line dataKey="forecast" stroke={ACCENT} strokeWidth={2.5} strokeDasharray="6 4" dot={{ r: 3 }} name={`Прогноз (${yLabel})`} />
       </ComposedChart>
     </ResponsiveContainer>
   );
