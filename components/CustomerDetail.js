@@ -155,11 +155,19 @@ export default function CustomerDetail({ customer, benchmarks, weekly, weeklyFor
       <div className="bg-white rounded-xl p-6 shadow-sm">
         <Link href="/customers" className="text-sm text-brand-600 hover:text-brand-700 mb-3 inline-flex items-center gap-1">
           <svg className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clipRule="evenodd" /></svg>
-          До списку клієнтів
+          До списку
         </Link>
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-brand-700">{customer.name}</h1>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-1">
+              {customer.kind === "point" ? "Точка" : "Клієнт"}
+            </div>
+            <h1 className="text-xl md:text-2xl font-bold text-brand-700">{customer.name}</h1>
+            {customer.parentCustomer && (
+              <div className="text-sm text-gray-700 mt-1">
+                Клієнт: <Link href={`/customers/${customer.parentSlug}`} className="text-brand-600 hover:underline font-medium">{customer.parentCustomer}</Link>
+              </div>
+            )}
             <div className="text-sm text-gray-500 mt-1">
               {customer.city} • Перший заказ: {customer.firstDate} ({customer.firstWeek}) • {customer.weeksObserved} тижнів спостереження
             </div>
@@ -278,8 +286,12 @@ export default function CustomerDetail({ customer, benchmarks, weekly, weeklyFor
         </div>
 
         <div className="bg-white rounded-xl p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-brand-600 mb-1">Точки доставки</h2>
-          <p className="text-sm text-gray-500 mb-4">Адреси, куди їде сировина для цього клієнта.</p>
+          <h2 className="text-lg font-semibold text-brand-600 mb-1">
+            {customer.kind === "point" ? "Адреса точки" : `Точки доставки (${customer.points.length})`}
+          </h2>
+          <p className="text-sm text-gray-500 mb-4">
+            {customer.kind === "point" ? "Деталі цієї конкретної адреси." : "Адреси, куди їде сировина. Клікни на точку — побачиш окремий аналіз."}
+          </p>
           <ul className="space-y-2">
             {customer.points.map((p, i) => (
               <li key={i} className="flex items-start justify-between gap-3 text-sm border-b border-gray-100 pb-2 last:border-0">

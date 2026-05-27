@@ -44,7 +44,7 @@ export default function CustomersPage() {
         </div>
       </details>
 
-      <ProfitabilityDashboard customers={data.customers} />
+      <ProfitabilityDashboard customers={data.customers} points={data.points} />
     </div>
   );
 }

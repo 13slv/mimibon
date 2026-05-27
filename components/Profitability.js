@@ -15,9 +15,6 @@ function getRecommendation(c, projected, threshold) {
     };
   }
   const gap = threshold - projected;
-  const monthsToHit = 1;
-
-  // Too new to judge
   if (c.weeksObserved <= 1) {
     return {
       category: "Новий",
@@ -26,17 +23,14 @@ function getRecommendation(c, projected, threshold) {
       targetMetric: `Через 4 тижні: ${threshold} кг/міс`
     };
   }
-  // Customer went silent
   if (c.weeksSinceLast >= 2) {
-    const lostWeeks = c.weeksSinceLast;
     return {
       category: "Реактивація",
-      action: `Не замовляв ${lostWeeks} тижні. Дзвінок + промо. Останній заказ був ${c.lastDate}.`,
+      action: `Не замовляв ${c.weeksSinceLast} тижні. Дзвінок + промо. Останній заказ був ${c.lastDate}.`,
       priority: 1,
       targetMetric: `Перевести в активного: 1 заказ/тиждень × ${Math.ceil(threshold/4.33)} кг`
     };
   }
-  // Only 1 flavor — easy uplift
   if (c.flavorsCount === 1) {
     const potentialDouble = c.totalKg / c.weeksObserved * 4.33 * 1.8;
     return {
@@ -46,7 +40,6 @@ function getRecommendation(c, projected, threshold) {
       targetMetric: `${threshold} кг/міс через додавання 2-го SKU`
     };
   }
-  // Small orders — bundle them
   if (c.avgKgOrder < 30) {
     const targetAvgOrder = Math.ceil(threshold / 4.33);
     return {
@@ -56,7 +49,6 @@ function getRecommendation(c, projected, threshold) {
       targetMetric: `Середній заказ ≥${targetAvgOrder} кг`
     };
   }
-  // Few orders
   if (c.ordersCount <= 2 && c.weeksObserved >= 3) {
     const neededOrders = Math.ceil(threshold / c.avgKgOrder);
     return {
@@ -66,7 +58,6 @@ function getRecommendation(c, projected, threshold) {
       targetMetric: `${neededOrders} заказів/міс × ${fmt(c.avgKgOrder)} кг`
     };
   }
-  // Default: needs deeper assessment
   return {
     category: "Контакт",
     action: `Не вистачає ${fmt(gap)} кг/міс. Зустрітися, оцінити потенціал точки. Або розвиток, або вихід.`,
@@ -85,22 +76,25 @@ const CATEGORY_COLOR = {
   "Новий": "bg-gray-100 text-gray-700 border-gray-300",
 };
 
-export function ProfitabilityDashboard({ customers }) {
+export function ProfitabilityDashboard({ customers, points }) {
+  const [mode, setMode] = useState("points"); // "points" or "customers"
   const [threshold, setThreshold] = useState(150);
-  const [growthPct, setGrowthPct] = useState(0);          // -50..+100%
-  const [retentionBoost, setRetentionBoost] = useState(0); // 0..+30% extra retention
-  const [filter, setFilter] = useState("all");             // all / unprofitable / borderline / profitable / category
+  const [growthPct, setGrowthPct] = useState(0);
+  const [retentionBoost, setRetentionBoost] = useState(0);
+  const [filter, setFilter] = useState("all");
   const [filterCategory, setFilterCategory] = useState(null);
   const [sortBy, setSortBy] = useState("projected_desc");
 
-  // Apply scenario
+  const source = mode === "points" ? points : customers;
+  const entityLabel = mode === "points" ? "точка" : "клієнт";
+  const entityLabelPlural = mode === "points" ? "точок" : "клієнтів";
+  const detailUrlBase = mode === "points" ? "/points" : "/customers";
+
   const enriched = useMemo(() => {
     const growth = 1 + growthPct / 100;
     const retentionMul = 1 + retentionBoost / 100;
-    return customers.map(c => {
-      // base projection
+    return source.map(c => {
       let projected = c.kgPerMonth * growth;
-      // retention boost effect: customers who order less frequently benefit more
       if (c.ordersCount < c.weeksObserved) {
         projected *= retentionMul;
       }
@@ -113,9 +107,8 @@ export function ProfitabilityDashboard({ customers }) {
         recommendation: reco,
       };
     });
-  }, [customers, threshold, growthPct, retentionBoost]);
+  }, [source, threshold, growthPct, retentionBoost]);
 
-  // Filter
   const filtered = useMemo(() => {
     let f = enriched;
     if (filter === "profitable") f = f.filter(c => c.status === "profitable");
@@ -125,7 +118,6 @@ export function ProfitabilityDashboard({ customers }) {
     return f;
   }, [enriched, filter, filterCategory]);
 
-  // Sort
   const sorted = useMemo(() => {
     const arr = [...filtered];
     if (sortBy === "projected_desc") arr.sort((a, b) => b.projectedKgMonth - a.projectedKgMonth);
@@ -136,16 +128,12 @@ export function ProfitabilityDashboard({ customers }) {
     return arr;
   }, [filtered, sortBy]);
 
-  // Aggregate counts
-  const counts = useMemo(() => {
-    return {
-      profitable: enriched.filter(c => c.status === "profitable").length,
-      borderline: enriched.filter(c => c.status === "borderline").length,
-      unprofitable: enriched.filter(c => c.status === "unprofitable").length,
-    };
-  }, [enriched]);
+  const counts = useMemo(() => ({
+    profitable: enriched.filter(c => c.status === "profitable").length,
+    borderline: enriched.filter(c => c.status === "borderline").length,
+    unprofitable: enriched.filter(c => c.status === "unprofitable").length,
+  }), [enriched]);
 
-  // Category counts
   const categoryCounts = useMemo(() => {
     const cnt = {};
     enriched.forEach(c => {
@@ -155,13 +143,36 @@ export function ProfitabilityDashboard({ customers }) {
     return cnt;
   }, [enriched]);
 
-  // Total kg at risk (kg below threshold)
   const totalGapKg = useMemo(() => {
     return enriched.filter(c => c.status !== "profitable").reduce((sum, c) => sum + Math.max(0, c.gap), 0);
   }, [enriched]);
 
   return (
     <div className="space-y-6">
+      {/* Mode toggle */}
+      <div className="bg-white rounded-xl p-4 shadow-sm flex items-center gap-3 flex-wrap">
+        <span className="text-sm text-gray-500 font-medium">Аналізувати по:</span>
+        <div className="inline-flex rounded-md shadow-sm">
+          <button onClick={() => setMode("points")}
+                  className={`px-4 py-2 text-sm font-semibold rounded-l-md border ${
+                    mode === "points" ? "bg-brand-500 text-white border-brand-500" : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                  }`}>
+            Точкам ({points.length})
+          </button>
+          <button onClick={() => setMode("customers")}
+                  className={`px-4 py-2 text-sm font-semibold rounded-r-md border -ml-px ${
+                    mode === "customers" ? "bg-brand-500 text-white border-brand-500" : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                  }`}>
+            Клієнтам ({customers.length})
+          </button>
+        </div>
+        <span className="text-xs text-gray-400 ml-auto">
+          {mode === "points"
+            ? "Кожна адреса — окремий рядок. Краще для операційних рішень (де знизити обʼєм, де додати)."
+            : "Один клієнт = один рядок (всі точки сумовані). Краще для рішень про договір/комерцію."}
+        </span>
+      </div>
+
       {/* Scenario builder */}
       <div className="bg-white rounded-xl p-6 shadow-sm">
         <h2 className="text-lg font-semibold text-brand-600 mb-2">Сценарій</h2>
@@ -173,21 +184,19 @@ export function ProfitabilityDashboard({ customers }) {
         </div>
       </div>
 
-      {/* KPI strip */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatusCard label="Прибуткові" count={counts.profitable} total={enriched.length} color="green" />
-        <StatusCard label="Граничні" count={counts.borderline} total={enriched.length} color="amber" />
-        <StatusCard label="Збиткові" count={counts.unprofitable} total={enriched.length} color="red" />
-        <div className="bg-white p-5 rounded-lg shadow-sm border-l-4 border-brand-600">
+        <StatusCard label="Прибуткові" count={counts.profitable} total={enriched.length} color="green" entityLabelPlural={entityLabelPlural} />
+        <StatusCard label="Граничні" count={counts.borderline} total={enriched.length} color="amber" entityLabelPlural={entityLabelPlural} />
+        <StatusCard label="Збиткові" count={counts.unprofitable} total={enriched.length} color="red" entityLabelPlural={entityLabelPlural} />
+        <div className="bg-white p-5 rounded-lg shadow-sm border-l-4 border-brand-500">
           <div className="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-1">Сумарний gap</div>
           <div className="text-2xl font-bold text-brand-600">{fmt(totalGapKg)}</div>
           <div className="text-xs text-gray-400 mt-1">кг/міс не вистачає сумарно</div>
         </div>
       </div>
 
-      {/* Action groups */}
       <div className="bg-white rounded-xl p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-brand-600 mb-1">Пріоритетні дії — групи клієнтів</h2>
+        <h2 className="text-lg font-semibold text-brand-600 mb-1">Пріоритетні дії — групи</h2>
         <p className="text-sm text-gray-500 mb-4">Клікни на групу — таблиця фільтрується.</p>
         <div className="flex flex-wrap gap-2">
           <button onClick={() => { setFilter("all"); setFilterCategory(null); }}
@@ -214,7 +223,6 @@ export function ProfitabilityDashboard({ customers }) {
         </div>
       </div>
 
-      {/* Sort & filter bar */}
       <div className="bg-white rounded-xl p-4 shadow-sm flex flex-wrap gap-3 items-center text-sm">
         <span className="text-gray-500 font-medium">Сортування:</span>
         <select value={sortBy} onChange={e => setSortBy(e.target.value)}
@@ -233,16 +241,16 @@ export function ProfitabilityDashboard({ customers }) {
           <option value="borderline">Тільки граничні</option>
           <option value="unprofitable">Тільки збиткові</option>
         </select>
-        <span className="text-gray-500 ml-auto">Показано: <b>{sorted.length}</b> з {enriched.length}</span>
+        <span className="text-gray-500 ml-auto">Показано: <b>{sorted.length}</b> з {enriched.length} {entityLabelPlural}</span>
       </div>
 
-      {/* Table */}
       <div className="bg-white rounded-xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="text-sm w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="text-left p-3 font-semibold text-gray-700">Клієнт</th>
+                <th className="text-left p-3 font-semibold text-gray-700">{mode === "points" ? "Точка (адреса)" : "Клієнт"}</th>
+                {mode === "points" && <th className="text-left p-3 font-semibold text-gray-700">Клієнт</th>}
                 <th className="text-left p-3 font-semibold text-gray-700">Місто</th>
                 <th className="text-right p-3 font-semibold text-gray-700">Спост. кг/міс</th>
                 <th className="text-right p-3 font-semibold text-gray-700">Прогноз кг/міс</th>
@@ -252,68 +260,60 @@ export function ProfitabilityDashboard({ customers }) {
               </tr>
             </thead>
             <tbody>
-              {sorted.map((c, i) => (
-                <CustomerRow key={c.name} customer={c} threshold={threshold} />
-              ))}
+              {sorted.map(c => <EntityRow key={c.slug} item={c} mode={mode} detailUrlBase={detailUrlBase} threshold={threshold} />)}
             </tbody>
           </table>
         </div>
         {sorted.length === 0 && (
-          <div className="text-center text-gray-500 py-12">Немає клієнтів у цьому фільтрі.</div>
+          <div className="text-center text-gray-500 py-12">Немає у цьому фільтрі.</div>
         )}
       </div>
 
-      {/* Methodology */}
       <div className="bg-white rounded-xl p-6 shadow-sm text-sm text-gray-700 space-y-3">
         <h3 className="text-lg font-semibold text-brand-600">Як рахується</h3>
-        <div>
-          <b>Спостережене кг/міс</b> = (загальні кг клієнта) / (тижнів від першого заказу) × 4,33
-        </div>
-        <div>
-          <b>Прогноз</b> = спостережене × (1 + зростання%). Для клієнтів із низькою частотою додається retention-бонус.
-        </div>
-        <div>
-          <b>Колір статусу:</b>
-          <ul className="list-disc pl-6 mt-1">
-            <li>🟢 Зелений — прогноз ≥ поріг</li>
-            <li>🟡 Жовтий — 65–99% від порогу</li>
-            <li>🔴 Червоний — &lt;65% від порогу</li>
-          </ul>
-        </div>
-        <div>
-          <b>Рекомендації</b> формуються за правилами: якщо клієнт має 1 аромат → cross-sell;
-          якщо мовчить ≥2 тижні → реактивація; якщо середній заказ &lt;30 кг → укрупнити; тощо.
-        </div>
-        <div className="text-amber-600">
-          ⚠️ <b>На 4 тижнях даних оцінки індикативні.</b> Для нових клієнтів (1 тиждень) прогноз — лише гіпотеза.
-        </div>
+        <div><b>Спостережене кг/міс</b> = (загальні кг {entityLabel}а) / (тижнів від першого заказу) × 4,33</div>
+        <div><b>Прогноз</b> = спостережене × (1 + зростання%). Для тих із низькою частотою додається retention-бонус.</div>
+        <div><b>Чому варто дивитись і по точках, і по клієнтах:</b></div>
+        <ul className="list-disc pl-6 space-y-1">
+          <li><b>По точках</b> — операційні рішення: "ця точка не тягне, закрити доставку" або "тут потенціал, додати точку поруч".</li>
+          <li><b>По клієнтах</b> — комерційні рішення: "цей клієнт є важливим в цілому, навіть якщо деякі його точки слабкі".</li>
+        </ul>
       </div>
     </div>
   );
 }
 
-function CustomerRow({ customer, threshold }) {
-  const c = customer;
+function EntityRow({ item, mode, detailUrlBase, threshold }) {
+  const c = item;
   const statusColor = c.status === "profitable" ? "bg-green-100 text-green-800"
                     : c.status === "borderline" ? "bg-amber-100 text-amber-800"
                     : "bg-red-100 text-red-800";
   const statusLabel = c.status === "profitable" ? "Прибутковий"
                     : c.status === "borderline" ? "Граничний" : "Збитковий";
   const catColor = CATEGORY_COLOR[c.recommendation.category] || "bg-gray-100 text-gray-700";
+  const displayName = mode === "points" ? (c.address || c.name) : c.name;
+  const cityClean = (c.city || "").replace(/^м\.\s|^с\.\s|^смт\s/, '');
 
   return (
     <tr className="border-t border-gray-100 hover:bg-gray-50">
-      <td className="p-3 font-medium text-gray-800">
-        <Link href={`/customers/${c.slug}`} className="text-brand-600 hover:text-brand-700 hover:underline inline-flex items-center gap-1">
-          {c.name}
-          <svg className="w-3 h-3 opacity-60" viewBox="0 0 20 20" fill="currentColor"><path d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" /></svg>
+      <td className="p-3 font-medium text-gray-800 max-w-xs">
+        <Link href={`${detailUrlBase}/${c.slug}`} className="text-brand-600 hover:text-brand-700 hover:underline inline-flex items-start gap-1">
+          <span>{displayName}</span>
+          <svg className="w-3 h-3 opacity-60 mt-1 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor"><path d="M10.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L12.586 11H5a1 1 0 110-2h7.586l-2.293-2.293a1 1 0 010-1.414z" /></svg>
         </Link>
         <div className="text-xs text-gray-400 mt-0.5">
           {c.weeksObserved}тиж спост., {c.ordersCount} заказів, {c.flavorsCount}/2 ароматів
           {c.weeksSinceLast > 0 && <span className="text-red-500 ml-2">• мовчить {c.weeksSinceLast}тиж</span>}
         </div>
       </td>
-      <td className="p-3 text-gray-600 text-xs">{c.city.replace(/^м\.\s|^с\.\s|^смт\s/, '')}</td>
+      {mode === "points" && (
+        <td className="p-3 text-xs text-gray-600">
+          {c.parentSlug ? (
+            <Link href={`/customers/${c.parentSlug}`} className="text-brand-500 hover:underline">{c.parentCustomer}</Link>
+          ) : c.parentCustomer}
+        </td>
+      )}
+      <td className="p-3 text-gray-600 text-xs">{cityClean}</td>
       <td className="p-3 text-right text-gray-600">{fmt(c.kgPerMonth)}</td>
       <td className="p-3 text-right font-semibold">{fmt(c.projectedKgMonth)}</td>
       <td className="p-3 text-right">
@@ -324,7 +324,7 @@ function CustomerRow({ customer, threshold }) {
       <td className="p-3 text-center">
         <span className={`inline-block px-2 py-1 rounded text-xs font-semibold ${statusColor}`}>{statusLabel}</span>
       </td>
-      <td className="p-3">
+      <td className="p-3 max-w-md">
         <div className="flex flex-col gap-1">
           <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium border ${catColor} w-fit`}>
             {c.recommendation.category}
@@ -341,7 +341,7 @@ function CustomerRow({ customer, threshold }) {
 
 function SliderInput({ label, value, min, max, step = 1, onChange, suffix = "" }) {
   return (
-    <div className="bg-gray-50 p-4 rounded-lg">
+    <div className="bg-brand-50 p-4 rounded-lg">
       <div className="flex items-center justify-between mb-2">
         <label className="text-xs uppercase tracking-wide text-gray-500 font-semibold">{label}</label>
         <input type="number" value={value} min={min} max={max} step={step}
@@ -350,13 +350,13 @@ function SliderInput({ label, value, min, max, step = 1, onChange, suffix = "" }
       </div>
       <input type="range" min={min} max={max} step={step} value={value}
              onChange={e => onChange(parseFloat(e.target.value))}
-             className="w-full accent-brand-600" />
+             className="w-full accent-brand-500" />
       <div className="text-xs text-gray-400 mt-1">{min}{suffix} — {max}{suffix}</div>
     </div>
   );
 }
 
-function StatusCard({ label, count, total, color }) {
+function StatusCard({ label, count, total, color, entityLabelPlural }) {
   const colors = {
     green: "border-green-500 text-green-700",
     amber: "border-amber-500 text-amber-700",
@@ -367,7 +367,7 @@ function StatusCard({ label, count, total, color }) {
     <div className={`bg-white p-5 rounded-lg shadow-sm border-l-4 ${colors[color]}`}>
       <div className="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-1">{label}</div>
       <div className="text-2xl font-bold">{count}</div>
-      <div className="text-xs text-gray-400 mt-1">{pct}% від бази ({total} клієнтів)</div>
+      <div className="text-xs text-gray-400 mt-1">{pct}% від бази ({total} {entityLabelPlural})</div>
     </div>
   );
 }
